@@ -1,0 +1,112 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=Kite+One&family=Playfair+Display:wght@400..900&family=Winky+Rough:ital,wght@0,300..900;1,300..900&family=Winky+Sans:ital,wght@0,300..900;1,300..900&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+
+@layer base {
+  :root {
+    --background: 48 100% 97%;
+    --foreground: 150 30% 15%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 150 30% 15%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 150 30% 15%;
+
+    --primary: 150 50% 18%;
+    --primary-foreground: 48 100% 97%;
+
+    --secondary: 48 100% 50%;
+    --secondary-foreground: 150 50% 18%;
+
+    --muted: 48 30% 92%;
+    --muted-foreground: 150 20% 40%;
+
+    --accent: 48 100% 50%;
+    --accent-foreground: 150 50% 18%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --success: 142 76% 36%;
+    --success-foreground: 0 0% 100%;
+
+    --warning: 38 92% 50%;
+    --warning-foreground: 0 0% 100%;
+
+    --border: 150 20% 85%;
+    --input: 150 20% 85%;
+    --ring: 150 50% 18%;
+
+    --radius: 0.75rem;
+
+    --sidebar-background: 150 50% 18%;
+    --sidebar-foreground: 48 100% 97%;
+    --sidebar-primary: 48 100% 50%;
+    --sidebar-primary-foreground: 150 50% 18%;
+    --sidebar-accent: 150 40% 25%;
+    --sidebar-accent-foreground: 48 100% 97%;
+    --sidebar-border: 150 40% 25%;
+    --sidebar-ring: 48 100% 50%;
+  }
+
+  .dark {
+    --background: 150 30% 10%;
+    --foreground: 48 100% 97%;
+
+    --card: 150 30% 14%;
+    --card-foreground: 48 100% 97%;
+
+    --popover: 150 30% 14%;
+    --popover-foreground: 48 100% 97%;
+
+    --primary: 48 100% 50%;
+    --primary-foreground: 150 50% 18%;
+
+    --secondary: 150 40% 25%;
+    --secondary-foreground: 48 100% 97%;
+
+    --muted: 150 30% 20%;
+    --muted-foreground: 48 30% 70%;
+
+    --accent: 48 100% 50%;
+    --accent-foreground: 150 50% 18%;
+
+    --destructive: 0 62% 30%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 150 30% 25%;
+    --input: 150 30% 25%;
+    --ring: 48 100% 50%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+    font-family: "Kite One", serif;
+    font-style: normal;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    font-family: 'Poppins', sans-serif;
+  }
+}
+
+@layer utilities {
+  .stat-card {
+    @apply bg-card rounded-xl p-6 shadow-sm border border-border/50 transition-all duration-300 hover:shadow-md;
+  }
+
+  .dashboard-title {
+    @apply text-2xl font-semibold text-foreground;
+  }
+
+  .section-label {
+    @apply text-xs font-medium uppercase tracking-wider text-muted-foreground;
+  }
+}
