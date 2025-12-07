@@ -1,6 +1,13 @@
 import { useState, useEffect, useMemo } from "react";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
-import { Search, UserCircle, Phone, Mail, MoreVertical } from "lucide-react";
+import {
+  Search,
+  UserCircle,
+  MoreVertical,
+  Calendar,
+  Mail,
+  Phone,
+} from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -14,23 +21,119 @@ import { Link } from "react-router-dom";
 import { useChildren } from "@/stores/children.store";
 import { Child } from "@/types/child.types";
 import { useParents } from "@/stores/parent.store";
+import { calculateAge } from "@/lib/utils";
+import { useModalStore } from "@/stores/overlay.store";
+import { formatDate } from "date-fns";
+import { DialogTitle } from "@radix-ui/react-dialog";
 
 const Children = () => {
   const { children, fetchChildren } = useChildren();
   const { parents, fetchParents } = useParents();
   const [search, setSearch] = useState("");
 
+  const openModal = useModalStore((state) => state.openModal);
+
   useEffect(() => {
-    try {
-      fetchChildren();
-      fetchParents();
-      console.log(children, parents);
-    } catch (error) {
-      console.log(error);
-    }
+    fetchChildren();
+    fetchParents();
   }, []);
 
-  /** Filter children by child's name */
+  /** Show modal with child info */
+  const showInfoOverlay = (child: Child) => {
+    const parentRefs = child.parents || [];
+    const parentIds = parentRefs.map((p) => p.id);
+    const parentInfo = parents.filter((p) => parentIds.includes(p.id));
+    openModal(
+      <div className="space-y-6">
+        {/* Child Header */}
+        <div className="flex items-center gap-4">
+          <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center">
+            <span className="text-primary font-bold text-xl">
+              {child.fname[0]}
+              {child.lname[0]}
+            </span>
+          </div>
+          <div>
+            <DialogTitle className="text-2xl font-bold leading-tight">
+              {child.fname} {child.lname}
+            </DialogTitle>
+
+            <Badge variant={child.is_active ? "default" : "secondary"}>
+              {child.is_active ? "Active" : "Inactive"}
+            </Badge>
+          </div>
+        </div>
+        {/* Child Details */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 bg-muted/30 rounded-lg border">
+          <div className="flex items-center gap-3">
+            <UserCircle className="w-5 h-5 text-muted-foreground" />
+            <div>
+              <p className="text-xs text-muted-foreground">Age</p>
+              <p className="font-medium">
+                {calculateAge(child.birthdate)} years
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <Badge variant="outline" className="px-2 py-1 text-xs">
+              ETB
+            </Badge>
+            <div>
+              <p className="text-xs text-muted-foreground">Monthly Fee</p>
+              <p className="font-medium">ETB {child.monthlyFee}</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Parents Section */}
+        <div className="space-y-4">
+          <h3 className="font-semibold text-lg">Parents</h3>
+
+          {parentInfo.map((p) => (
+            <div
+              key={p.id}
+              className="p-4 rounded-lg border bg-card shadow-sm space-y-2"
+            >
+              <div className="flex items-center gap-3">
+                <UserCircle className="h-6 w-6 text-primary" />
+                <p className="text-lg font-medium">
+                  {p.fname} {p.lname}
+                </p>
+                <Badge variant={child.is_active ? "default" : "secondary"}>
+                  {parentRefs.find((ref) => ref.id === p.id)?.relationship}
+                </Badge>
+              </div>
+
+              <div className="space-y-2 pl-9">
+                <div className="flex items-center gap-2 text-sm">
+                  <Phone className="w-4 h-4 text-muted-foreground" />
+                  <span>{p.phone_number}</span>
+                </div>
+
+                <div className="flex items-center gap-2 text-sm">
+                  <Mail className="w-4 h-4 text-muted-foreground" />
+                  <span>{p.email}</span>
+                </div>
+
+                <div className="flex items-center gap-2 text-sm">
+                  <UserCircle className="w-4 h-4 text-muted-foreground" />
+                  <span>{p.gender == "M" ? "Male" : "Female"}</span>
+                </div>
+
+                <div className="flex items-center gap-2 text-sm">
+                  <Calendar className="w-4 h-4 text-muted-foreground" />
+                  <span>Joined {formatDate(p.created_at, "yyyy-MM-dd")}</span>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  };
+
+  /** Filter children by name */
   const filteredChildren = useMemo(() => {
     return children.filter((child: Child) => {
       const fullName = `${child.fname} ${child.lname}`.toLowerCase();
@@ -77,16 +180,12 @@ const Children = () => {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredChildren.map((child: Child) => {
-              const primaryParentLink =
-                child.parents?.find((p) => p.isPrimary) || child.parents?.[0];
-
-              // Load parent info using parentId
-              const parent = parents.find(
-                (p) => p.id === primaryParentLink?.parentId
-              );
-
               return (
-                <div key={child.id} className="stat-card">
+                <div
+                  key={child.id}
+                  className="stat-card cursor-pointer"
+                  onClick={() => showInfoOverlay(child)}
+                >
                   <div className="flex items-start justify-between mb-4">
                     {/* Avatar */}
                     <div className="flex items-center gap-3">
@@ -126,36 +225,12 @@ const Children = () => {
                     </DropdownMenu>
                   </div>
 
-                  {/* Parent Info */}
-                  <div className="space-y-3 text-sm">
-                    <div className="flex items-center gap-2 text-muted-foreground">
-                      <UserCircle className="w-4 h-4" />
-                      <span>
-                        {parent
-                          ? `${parent.fname} ${parent.lname}`
-                          : primaryParentLink
-                          ? "Loading..."
-                          : "No parent assigned"}
-                      </span>
-                    </div>
-
-                    <div className="flex items-center gap-2 text-muted-foreground">
-                      <Phone className="w-4 h-4" />
-                      <span>{parent?.phone_number ?? "N/A"}</span>
-                    </div>
-
-                    <div className="flex items-center gap-2 text-muted-foreground">
-                      <Mail className="w-4 h-4" />
-                      <span>{parent?.email ?? "N/A"}</span>
-                    </div>
-                  </div>
-
                   {/* Child Details */}
                   <div className="mt-4 pt-4 border-t border-border flex justify-between">
                     <div>
-                      <p className="text-xs text-muted-foreground">Birthdate</p>
+                      <p className="text-xs text-muted-foreground">Age</p>
                       <p className="font-medium">
-                        {new Date(child.birthdate).toLocaleDateString()}
+                        {calculateAge(child.birthdate)} years
                       </p>
                     </div>
                     <div className="text-right">

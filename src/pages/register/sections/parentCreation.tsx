@@ -8,19 +8,36 @@ import { useState } from "react";
 // ------------------------------
 // Parent Creation Step
 // ------------------------------
-export function NewParentStep({ onSave, onCancel }) {
-  const [form, setForm] = useState({ fullName: "", phone: "", email: "" });
+export function NewParentStep({
+  onSave,
+  onCancel,
+}: {
+  onSave: (data: {
+    fname: string;
+    lname: string;
+    gender: string;
+    phone: string;
+    email?: string;
+  }) => void;
+  onCancel: () => void;
+}) {
+  const [form, setForm] = useState({
+    fname: "",
+    lname: "",
+    gender: "M",
+    phone: "",
+    email: "",
+  });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
-    // clear error for field
     setErrors((prev) => ({ ...prev, [e.target.name]: undefined }));
   };
 
   const handleSave = () => {
     const newErrors: Record<string, string> = {};
-    if (!form.fullName.trim()) newErrors.fullName = "Full name is required";
+    if (!form.fname.trim()) newErrors.fname = "First name is required";
     if (!form.phone.trim()) newErrors.phone = "Phone is required";
     if (form.email && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(form.email))
       newErrors.email = "Invalid email";
@@ -30,7 +47,13 @@ export function NewParentStep({ onSave, onCancel }) {
       return;
     }
 
-    onSave(form);
+    onSave({
+      fname: form.fname.trim(),
+      lname: form.lname.trim(),
+      gender: form.gender,
+      phone: form.phone.trim(),
+      email: form.email.trim() || undefined,
+    });
   };
 
   return (
@@ -42,47 +65,70 @@ export function NewParentStep({ onSave, onCancel }) {
         </h3>
 
         <div className="space-y-3">
-          <div>
-            <Label>Full Name</Label>
-            <Input
-              name="fullName"
-              value={form.fullName}
-              onChange={handleChange}
-              required
-              className={errors.fullName ? "border-red-500" : ""}
-            />
-            {errors.fullName && (
-              <p className="text-red-600 text-sm mt-1">{errors.fullName}</p>
-            )}
-          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div>
+              <Label>First Name</Label>
+              <Input
+                name="fname"
+                value={form.fname}
+                onChange={handleChange}
+                required
+                className={errors.fname ? "border-red-500" : ""}
+              />
+              {errors.fname && (
+                <p className="text-red-600 text-sm mt-1">{errors.fname}</p>
+              )}
+            </div>
+            <div>
+              <Label>Last Name</Label>
+              <Input
+                name="lname"
+                value={form.lname}
+                onChange={handleChange}
+                className={errors.lname ? "border-red-500" : ""}
+              />
+            </div>
 
-          <div>
-            <Label>Phone</Label>
-            <Input
-              name="phone"
-              value={form.phone}
-              onChange={handleChange}
-              required
-              className={errors.phone ? "border-red-500" : ""}
-            />
-            {errors.phone && (
-              <p className="text-red-600 text-sm mt-1">{errors.phone}</p>
-            )}
-          </div>
+            <div>
+              <Label>Gender</Label>
+              <select
+                name="gender"
+                value={form.gender}
+                onChange={handleChange}
+                className="w-full rounded border px-3 py-2"
+              >
+                <option value="M">Male</option>
+                <option value="F">Female</option>
+              </select>
+            </div>
 
-          <div>
-            <Label>Email</Label>
-            <Input
-              name="email"
-              value={form.email}
-              onChange={handleChange}
-              type="email"
-              required
-              className={errors.email ? "border-red-500" : ""}
-            />
-            {errors.email && (
-              <p className="text-red-600 text-sm mt-1">{errors.email}</p>
-            )}
+            <div>
+              <Label>Phone</Label>
+              <Input
+                name="phone"
+                value={form.phone}
+                onChange={handleChange}
+                required
+                className={errors.phone ? "border-red-500" : ""}
+              />
+              {errors.phone && (
+                <p className="text-red-600 text-sm mt-1">{errors.phone}</p>
+              )}
+            </div>
+
+            <div className="md:col-span-2">
+              <Label>Email (optional)</Label>
+              <Input
+                name="email"
+                value={form.email}
+                onChange={handleChange}
+                type="email"
+                className={errors.email ? "border-red-500" : ""}
+              />
+              {errors.email && (
+                <p className="text-red-600 text-sm mt-1">{errors.email}</p>
+              )}
+            </div>
           </div>
         </div>
 

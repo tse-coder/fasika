@@ -18,3 +18,20 @@ export const api = async (
   if (!res.ok) throw new Error(`API error: ${res.status}`);
   return res.json();
 };
+
+export const calculateAge = (birthdate: string): number | "N/A" => {
+  if (!birthdate) return "N/A";
+  const birthDateObj = new Date(birthdate);
+  const ageDifMs = Date.now() - birthDateObj.getTime();
+  const ageDate = new Date(ageDifMs);
+  return Math.abs(ageDate.getUTCFullYear() - 1970);
+};
+
+export const formatDate = (dateStr: string): string => {
+  const date = new Date(dateStr);
+  return date.toLocaleDateString(undefined, {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+}

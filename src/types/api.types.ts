@@ -6,7 +6,7 @@ export interface PaginatedResponse<T> {
 }
 
 export interface ChildParentLink {
-  parentId: number;
+  id: number;
   relationship: string;    // "father", "mother", etc
   isPrimary: boolean;
 }

@@ -8,6 +8,7 @@ import Children from "./pages/Children";
 import Register from "./pages/register/Register";
 import Payments from "./pages/Payments";
 import NotFound from "./pages/NotFound";
+import { OverlayModal } from "./components/overlay";
 
 const queryClient = new QueryClient();
 
@@ -16,6 +17,7 @@ const App = () => (
     <TooltipProvider>
       <Toaster />
       <Sonner />
+      <OverlayModal />
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Index />} />

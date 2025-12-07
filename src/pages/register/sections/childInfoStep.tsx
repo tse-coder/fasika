@@ -58,7 +58,7 @@ export function ChildInfoStep({
               name="gender"
               value={form.gender || ""}
               onChange={onChange}
-              className={`w-full px-3 py-2 rounded border ${
+              className={`w-full rounded border px-3 py-2 ${
                 errors.gender ? "border-red-500" : "border-gray-300"
               }`}
             >
@@ -71,29 +71,36 @@ export function ChildInfoStep({
             )}
           </div>
 
-          <div>
-            <Label>Monthly Fee (ETB)</Label>
-            <Input
-              name="monthlyFee"
-              type="number"
-              value={form.monthlyFee}
-              onChange={onChange}
-              required
-              className={errors.monthlyFee ? "border-red-500" : ""}
-            />
-            {errors.monthlyFee && (
-              <p className="text-red-600 text-sm mt-1">{errors.monthlyFee}</p>
-            )}
-          </div>
+            <div>
+              <Label>Relationship to Selected Parent</Label>
+              <select
+                name="relationship"
+                value={form.relationship || "guardian"}
+                onChange={onChange}
+                className={`w-full rounded border px-3 py-2 ${
+                  errors.relationship ? "border-red-500" : "border-gray-300"
+                }`}
+              >
+                <option value="guardian">Guardian</option>
+                <option value="mother">Mother</option>
+                <option value="father">Father</option>
+                <option value="sibling">Sibling</option>
+                <option value="other">Other</option>
+              </select>
+              {errors.relationship && (
+                <p className="text-red-600 text-sm mt-1">
+                  {errors.relationship}
+                </p>
+              )}
+            </div>
 
           <div className="md:col-span-2">
-            <Label>Date of Birth</Label>
+            <Label>Date of Birth (optional if Age provided)</Label>
             <Input
               name="dateOfBirth"
               type="date"
               value={form.dateOfBirth}
               onChange={onChange}
-              required
               className={errors.dateOfBirth ? "border-red-500" : ""}
             />
             {errors.dateOfBirth && (

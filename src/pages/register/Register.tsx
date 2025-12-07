@@ -4,60 +4,60 @@ import { registerParent } from "@/api/parent.api";
 import { createChild } from "@/api/child.api";
 import { useParents } from "@/stores/parent.store";
 import { useChildren } from "@/stores/children.store";
-import type { Parent } from "@/types/parent.types";
 import { useToast } from "@/hooks/use-toast";
-import { UserPlus, Users, User, Wallet } from "lucide-react";
+import { UserPlus, Users, User } from "lucide-react";
 import { ParentStep } from "./sections/parentStep";
 import { NewParentStep } from "./sections/parentCreation";
-import { PaymentStep } from "./sections/paymentStep";
 import { ChildInfoStep } from "./sections/childInfoStep";
 import { Button } from "@/components/ui/button";
-import { Child } from "@/types/child.types";
 
 // ------------------------------
 // Main Sequential Form
 // ------------------------------
 export default function RegisterSequential() {
   const { toast } = useToast();
-  const { parents, fetchParents } = useParents();
+  const { parents = [], fetchParents } = useParents();
   const { fetchChildren } = useChildren();
   const [selectedParent, setSelectedParent] = useState<number | null>(null);
   const [currentStep, setCurrentStep] = useState("select-parent");
-  const [childForm, setChildForm] = useState({
+  const initialChildForm = {
     firstName: "",
     lastName: "",
     dateOfBirth: "",
-    monthlyFee: "",
+    age: "",
     gender: "",
-    registrationAmount: "",
-    bank: "",
-  });
+    relationship: "guardian",
+  };
+
+  const [childForm, setChildForm] = useState(initialChildForm);
 
   const [childErrors, setChildErrors] = useState<Record<string, string>>({});
-  const [paymentErrors, setPaymentErrors] = useState<Record<string, string>>(
-    {}
-  );
 
   useEffect(() => {
     fetchParents();
   }, []);
 
-  const handleChildChange = (e) => {
-    setChildForm({ ...childForm, [e.target.name]: e.target.value });
+  const handleChildChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
+    const { name, value } = e.target;
+    setChildForm((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleAddParent = async (data: {
-    fullName: string;
-    phone: string;
+    fname: string;
+    lname: string;
     email?: string;
+    phone: string;
+    gender: string;
   }) => {
-    if (!data.phone || !data.fullName) return;
-    const [fname = "", ...rest] = data.fullName.split(" ");
-    const lname = rest.join(" ");
+    if (!data.phone || !data.fname) return;
+    const fname = data.fname.trim();
+    const lname = data.lname.trim() || "";
     const payload = {
       fname,
       lname,
-      gender: "M",
+      gender: data.gender,
       phone_number: data.phone,
       email: data.email || "",
       is_active: true,
@@ -67,7 +67,15 @@ export default function RegisterSequential() {
       const newParent = await registerParent(payload as any);
       console.log("[Register] handleAddParent - created", newParent);
       await fetchParents();
-      setSelectedParent(newParent.id);
+
+      // API adapters may return the created parent directly or wrapped in { data }
+      const createdId =
+        (newParent && (newParent as any).id) ||
+        (newParent && (newParent as any).data && (newParent as any).data.id) ||
+        null;
+
+      if (createdId) setSelectedParent(createdId as number);
+      // Move to child creation for the newly created parent
       setCurrentStep("child-info");
     } catch (err: any) {
       console.error("[Register] handleAddParent - error", err);
@@ -93,34 +101,33 @@ export default function RegisterSequential() {
     }
     // final validation before submit
     const childValidation = validateChildForm();
-    const paymentValidation = validatePaymentForm();
     setChildErrors(childValidation);
-    setPaymentErrors(paymentValidation);
-    console.log("[Register] handleSubmit - validation", {
-      childValidation,
-      paymentValidation,
-    });
-    if (
-      Object.keys(childValidation).length > 0 ||
-      Object.keys(paymentValidation).length > 0
-    )
-      return;
+    console.log("[Register] handleSubmit - validation", { childValidation });
+    if (Object.keys(childValidation).length > 0) return;
+
+    // If user provided age but not dateOfBirth, convert age -> birthdate (approx)
+    let birthdate = childForm.dateOfBirth;
+    if (!birthdate && childForm.age) {
+      const now = new Date();
+      const year = now.getFullYear() - Number(childForm.age || 0);
+      // set to same month/day as today for approximation
+      birthdate = new Date(year, now.getMonth(), now.getDate()).toISOString();
+    }
 
     const childPayload = {
       fname: childForm.firstName,
       lname: childForm.lastName,
       gender: childForm.gender || "M",
-      birthdate: childForm.dateOfBirth,
+      birthdate,
       is_active: true,
-      // monthlyFee: parseInt(childForm.monthlyFee || "0"),
       parents: [
         {
           parentId: parent.id,
-          relationship: "guardian",
+          relationship: childForm.relationship || "guardian",
           isPrimary: true,
         },
       ],
-    } as Omit<Child, "id" | "monthlyFee">;
+    } as any;
 
     console.log("[Register] handleSubmit - childPayload", childPayload);
     try {
@@ -128,7 +135,11 @@ export default function RegisterSequential() {
       console.log("[Register] handleSubmit - created child", created);
       await fetchChildren();
       toast({ title: "Success!", description: "Child has been registered." });
-      // optionally reset or navigate
+
+      // Reset form and errors, clear selected parent, return to first step
+      setChildForm(initialChildForm);
+      setChildErrors({});
+      setSelectedParent(null);
       setCurrentStep("select-parent");
     } catch (err: any) {
       console.error("[Register] handleSubmit - error creating child", err);
@@ -144,21 +155,10 @@ export default function RegisterSequential() {
     const errs: Record<string, string> = {};
     if (!childForm.firstName.trim()) errs.firstName = "First name is required";
     if (!childForm.lastName.trim()) errs.lastName = "Last name is required";
-    if (!childForm.dateOfBirth) errs.dateOfBirth = "Date of birth is required";
+    if (!childForm.dateOfBirth && !childForm.age)
+      errs.dateOfBirth = "Provide date of birth or age";
     if (!childForm.gender) errs.gender = "Gender is required";
-    if (!childForm.monthlyFee || Number(childForm.monthlyFee) <= 0)
-      errs.monthlyFee = "Monthly fee must be greater than 0";
-    return errs;
-  };
-
-  const validatePaymentForm = () => {
-    const errs: Record<string, string> = {};
-    if (
-      !childForm.registrationAmount ||
-      Number(childForm.registrationAmount) <= 0
-    )
-      errs.registrationAmount = "Registration amount is required";
-    if (!childForm.bank) errs.bank = "Select a bank";
+    if (!childForm.relationship) errs.relationship = "Relationship is required";
     return errs;
   };
 
@@ -214,35 +214,13 @@ export default function RegisterSequential() {
               </Button>
               <Button
                 className="flex-1"
-                onClick={() => {
+                onClick={async () => {
                   const errs = validateChildForm();
                   setChildErrors(errs);
-                  if (Object.keys(errs).length === 0) setCurrentStep("payment");
+                  if (Object.keys(errs).length === 0) await handleSubmit();
                 }}
               >
-                Next
-              </Button>
-            </div>
-          </>
-        )}
-
-        {/* Step 4: Payment */}
-        {currentStep === "payment" && (
-          <>
-            <PaymentStep
-              form={childForm}
-              onChange={handleChildChange}
-              errors={paymentErrors}
-            />
-            <div className="w-full flex gap-2">
-              <Button
-                className="flex-1"
-                onClick={() => setCurrentStep("child-info")}
-              >
-                previous
-              </Button>
-              <Button className="flex-1" onClick={handleSubmit}>
-                Register Child
+                Submit
               </Button>
             </div>
           </>
