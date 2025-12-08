@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Search } from "lucide-react";
 import { SkeletonCard, LoaderIcon } from "@/components/ui/skeleton-card";
@@ -14,8 +14,10 @@ import InfoOverlay from "./sections/infoOverlay";
 import EmptyState from "./sections/emptyState";
 
 const Children = () => {
-  const { children, fetchChildren, isLoading } = useChildren();
+  const { fetchChildren, isLoading,children } = useChildren();
   const { parents, fetchParents } = useParents();
+
+  const [list, setList] = useState<Child[]>([]);
 
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
@@ -31,30 +33,37 @@ const Children = () => {
 
     debounceTimer.current = window.setTimeout(() => {
       setDebouncedSearch(search.trim());
-      setPage(1); // Reset pagination for new search
     }, 500);
 
-    return () => {
-      if (debounceTimer.current) clearTimeout(debounceTimer.current);
-    };
+    return () => debounceTimer.current && clearTimeout(debounceTimer.current);
   }, [search]);
 
   useEffect(() => {
-    fetchChildren({ page });
-  }, [page]);
-  useEffect(() => {
-    fetchChildren({ q: debouncedSearch });
-  }, [debouncedSearch]);
+    const loadChildren = async () => {
+      await fetchChildren({ page, q: debouncedSearch });
+
+      if (!Array.isArray(children)) return;
+
+      if (page === 1) {
+        setList(children); 
+      } else {
+        setList((prev) => [...prev, ...children]);
+      }
+    };
+
+    loadChildren();
+  }, [page, debouncedSearch]);
 
   const loadMore = async () => {
-    const nextPage = page + 1;
     setIsLoadingMore(true);
-    try {
-      await fetchChildren({ page: nextPage, q: debouncedSearch });
+    const nextPage = page + 1;
+
+    await fetchChildren({ page: nextPage, q: debouncedSearch });
+    if (Array.isArray(children)) {
+      setList((prev) => [...prev, ...children]);
       setPage(nextPage);
-    } finally {
-      setIsLoadingMore(false);
     }
+    setIsLoadingMore(false);
   };
 
   const showInfoOverlay = (child: Child) => {
@@ -63,13 +72,12 @@ const Children = () => {
     fetchParents({ ids: parentIds });
 
     const parentInfo = parents.filter((p) => parentIds.includes(p.id));
-
     openModal(<InfoOverlay child={child} parentInfo={parentInfo} />);
   };
 
   const showSkeleton =
-    (isLoading && children.length === 0) || // initial load
-    (debouncedSearch !== "" && isLoading); // while searching
+    (isLoading && list.length === 0) || // initial load
+    (debouncedSearch !== "" && isLoading); // searching
 
   return (
     <DashboardLayout>
@@ -97,14 +105,13 @@ const Children = () => {
               <SkeletonCard key={i} />
             ))}
           </div>
-        ) : children.length === 0 ? (
-          /* Empty state */
+        ) : list.length === 0 ? (
           <EmptyState />
         ) : (
           <>
-            {/* Child cards */}
+            {/* Child Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {children.map((child: Child) => (
+              {list.map((child) => (
                 <ChildCard
                   key={child.id}
                   child={child}
