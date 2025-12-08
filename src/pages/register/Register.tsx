@@ -16,8 +16,15 @@ import { Button } from "@/components/ui/button";
 // ------------------------------
 export default function RegisterSequential() {
   const { toast } = useToast();
-  const { parents = [], fetchParents } = useParents();
+  const {
+    parents = [],
+    fetchParents,
+    isLoading: parentsLoading,
+  } = useParents();
   const { fetchChildren } = useChildren();
+  const [parentPage, setParentPage] = useState(1);
+  const [parentSearch, setParentSearch] = useState("");
+  const [isLoadingMoreParents, setIsLoadingMoreParents] = useState(false);
   const [selectedParent, setSelectedParent] = useState<number | null>(null);
   const [currentStep, setCurrentStep] = useState("select-parent");
   const initialChildForm = {
@@ -34,8 +41,23 @@ export default function RegisterSequential() {
   const [childErrors, setChildErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
-    fetchParents();
-  }, []);
+    // fetch parents when page or search changes and manage loading-more state
+    let mounted = true;
+    const load = async () => {
+      try {
+        setIsLoadingMoreParents(true);
+        await fetchParents({ page: parentPage, q: parentSearch });
+      } catch (e) {
+        // swallow - store handles errors
+      } finally {
+        if (mounted) setIsLoadingMoreParents(false);
+      }
+    };
+    load();
+    return () => {
+      mounted = false;
+    };
+  }, [parentPage, parentSearch]);
 
   const handleChildChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -186,6 +208,12 @@ export default function RegisterSequential() {
               setCurrentStep("child-info");
             }}
             onAddNew={() => setCurrentStep("add-parent")}
+            onNext={() => setParentPage((p) => p + 1)}
+            onSearch={(q: string) => {
+              setParentPage(1);
+              setParentSearch(q || "");
+            }}
+            isLoading={parentsLoading || isLoadingMoreParents}
           />
         )}
 

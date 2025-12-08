@@ -23,6 +23,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { Plus, CreditCard, Search, Filter } from "lucide-react";
+import { LoaderIcon } from "@/components/ui/skeleton-card";
 import { Badge } from "@/components/ui/badge";
 import { Payment } from "@/types/payment.types";
 
@@ -45,6 +46,8 @@ const Payments = () => {
   const [searchParams] = useSearchParams();
   const { toast } = useToast();
   const { children, fetchChildren } = useChildren();
+  const [childrenPage, setChildrenPage] = useState(1);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [payments, setPayments] = useState<any[]>([]);
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
@@ -62,11 +65,11 @@ const Payments = () => {
   });
 
   useEffect(() => {
-    // load children from backend
-    fetchChildren();
+    // load children from backend for the current page
+    fetchChildren({ page: childrenPage });
     // payments are not implemented yet
     setPayments([]);
-  }, []);
+  }, [childrenPage]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -278,6 +281,20 @@ const Payments = () => {
               </form>
             </DialogContent>
           </Dialog>
+          <Button
+            variant="ghost"
+            onClick={async () => {
+              setIsLoadingMore(true);
+              try {
+                setChildrenPage((p) => p + 1);
+              } finally {
+                setIsLoadingMore(false);
+              }
+            }}
+            disabled={isLoadingMore}
+          >
+            {isLoadingMore ? <LoaderIcon className="w-4 h-4" /> : "Next"}
+          </Button>
         </div>
 
         {/* Payments Table */}

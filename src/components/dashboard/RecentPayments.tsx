@@ -1,13 +1,18 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useChildren } from "@/stores/children.store";
+import { Button } from "@/components/ui/button";
+import { LoaderIcon } from "@/components/ui/skeleton-card";
 
 // Payments are not implemented on backend yet; show recent children instead
 export const RecentPayments = () => {
   const { children, fetchChildren } = useChildren();
 
+  const [page, setPage] = useState(1);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+
   useEffect(() => {
-    fetchChildren();
-  }, []);
+    fetchChildren({ page });
+  }, [page]);
 
   const recent = [...children].slice(-5).reverse();
 
@@ -44,6 +49,22 @@ export const RecentPayments = () => {
           ))}
         </div>
       )}
+      <div className="mt-4 flex justify-center">
+        <Button
+          variant="ghost"
+          onClick={async () => {
+            setIsLoadingMore(true);
+            try {
+              setPage((p) => p + 1);
+            } finally {
+              setIsLoadingMore(false);
+            }
+          }}
+          disabled={isLoadingMore}
+        >
+          {isLoadingMore ? <LoaderIcon className="w-4 h-4" /> : "Next"}
+        </Button>
+      </div>
     </div>
   );
 };
