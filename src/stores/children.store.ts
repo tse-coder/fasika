@@ -2,7 +2,6 @@ import { create } from "zustand";
 import { Child, ChildState } from "@/types/child.types";
 import { fetchChildren } from "@/api/child.api";
 import { PaginatedResponse } from "@/types/api.types";
-import { loadCache, saveCache } from "@/utils/cache";
 
 export const useChildren = create<ChildState>((set) => ({
   children: [],
@@ -10,35 +9,18 @@ export const useChildren = create<ChildState>((set) => ({
   isLoading: false,
 
   fetchChildren: async (filters = {}) => {
-    const cacheKey = "children_" + JSON.stringify(filters);
-
     set({ isLoading: true, error: null });
 
     console.log("[Store] fetchChildren - start", filters);
     try {
-      // Try to use cache
-      const cached = loadCache<PaginatedResponse<Child>>(cacheKey, 300000);
-      if (cached) {
-        console.log("[Store] fetchChildren - cache hit", cached);
-        set({ children: cached.data, isLoading: false });
-        return;
-      }
-
       // Fetch from API
       const res = await fetchChildren(filters);
       console.log("[Store] fetchChildren - api returned", res);
 
-      // Save to cache and update state. API may return paginated response or plain array.
+      // API may return paginated response or plain array. Normalize both.
       if (Array.isArray(res)) {
-        saveCache(cacheKey, {
-          data: res,
-          total: res.length,
-          page: 1,
-          limit: res.length,
-        });
         set({ children: res, isLoading: false });
       } else if ((res as any).data) {
-        saveCache(cacheKey, res as PaginatedResponse<Child>);
         set({
           children: (res as PaginatedResponse<Child>).data,
           isLoading: false,

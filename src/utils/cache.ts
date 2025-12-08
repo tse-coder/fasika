@@ -1,16 +1,13 @@
-export const saveCache = (key: string, data: any) => {
-  localStorage.setItem(key, JSON.stringify({
-    timestamp: Date.now(),
-    data
-  }));
+// Caching was removed from the project. These no-op helpers remain
+// for backward-compatibility during the transition but do nothing.
+// Remove this file entirely once all imports are gone.
+
+export const saveCache = (_key: string, _data: any) => {
+  // no-op: caching removed
+  return;
 };
 
-export const loadCache = <T>(key: string, maxAgeMs: number): T | null => {
-  const raw = localStorage.getItem(key);
-  if (!raw) return null;
-
-  const parsed = JSON.parse(raw);
-  if (Date.now() - parsed.timestamp > maxAgeMs) return null;
-
-  return parsed.data as T;
+export const loadCache = <T>(_key: string, _maxAgeMs: number): T | null => {
+  // no-op: caching removed
+  return null;
 };
