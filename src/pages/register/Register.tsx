@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { registerParent } from "@/api/parent.api";
 import { createChild } from "@/api/child.api";
@@ -10,6 +10,8 @@ import { ParentStep } from "./sections/parentStep";
 import { NewParentStep } from "./sections/parentCreation";
 import { ChildInfoStep } from "./sections/childInfoStep";
 import { Button } from "@/components/ui/button";
+import type { Parent } from "@/types/parent.types";
+import { LoaderIcon } from "@/components/ui/skeleton-card";
 
 // ------------------------------
 // Main Sequential Form
@@ -17,7 +19,6 @@ import { Button } from "@/components/ui/button";
 export default function RegisterSequential() {
   const { toast } = useToast();
   const {
-    parents = [],
     fetchParents,
     isLoading: parentsLoading,
   } = useParents();
@@ -27,6 +28,9 @@ export default function RegisterSequential() {
   const [isLoadingMoreParents, setIsLoadingMoreParents] = useState(false);
   const [selectedParent, setSelectedParent] = useState<number | null>(null);
   const [currentStep, setCurrentStep] = useState("select-parent");
+  const [isSavingParent, setIsSavingParent] = useState(false);
+  const [isSubmittingChild, setIsSubmittingChild] = useState(false);
+  const [parentList, setParentList] = useState<Parent[]>([]);
   const initialChildForm = {
     firstName: "",
     lastName: "",
@@ -46,7 +50,26 @@ export default function RegisterSequential() {
     const load = async () => {
       try {
         setIsLoadingMoreParents(true);
-        await fetchParents({ page: parentPage, q: parentSearch });
+        const trimmed = parentSearch.trim();
+        const params =
+          trimmed.length > 0
+            ? { query: trimmed }
+            : {
+                page: parentPage,
+              };
+
+        const data = (await fetchParents(params)) || [];
+
+        if (!mounted) return;
+
+        setParentList((prev) =>
+          parentPage === 1
+            ? data
+            : [
+                ...prev,
+                ...data.filter((parent) => !prev.some((p) => p.id === parent.id)),
+              ]
+        );
       } catch (e) {
         // swallow - store handles errors
       } finally {
@@ -73,7 +96,9 @@ export default function RegisterSequential() {
     phone: string;
     gender: string;
   }) => {
+    if (isSavingParent) return;
     if (!data.phone || !data.fname) return;
+    setIsSavingParent(true);
     const fname = data.fname.trim();
     const lname = data.lname.trim() || "";
     const payload = {
@@ -88,7 +113,11 @@ export default function RegisterSequential() {
     try {
       const newParent = await registerParent(payload as any);
       console.log("[Register] handleAddParent - created", newParent);
-      await fetchParents();
+      const trimmed = parentSearch.trim();
+      const refreshed =
+        (await fetchParents(trimmed ? { query: trimmed } : { page: 1 })) || [];
+      setParentPage(1);
+      setParentList(refreshed);
 
       // API adapters may return the created parent directly or wrapped in { data }
       const createdId =
@@ -96,22 +125,41 @@ export default function RegisterSequential() {
         (newParent && (newParent as any).data && (newParent as any).data.id) ||
         null;
 
-      if (createdId) setSelectedParent(createdId as number);
+      // Try to find the parent in the refreshed list (covers cases where API wraps differently)
+      const resolvedId =
+        createdId ||
+        refreshed.find((p) => p.phone_number === payload.phone_number)?.id ||
+        refreshed[0]?.id ||
+        null;
+
+      if (resolvedId) setSelectedParent(resolvedId as number);
+
+      toast({
+        title: "Parent created",
+        description: "Parent has been saved successfully.",
+      });
+
       // Move to child creation for the newly created parent
       setCurrentStep("child-info");
     } catch (err: any) {
       console.error("[Register] handleAddParent - error", err);
+      const message =
+        err?.response?.data?.message ||
+        err?.message ||
+        "Failed to create parent";
       toast({
         title: "Error",
-        description: "Failed to create parent",
+        description: message,
         variant: "destructive",
       });
+    } finally {
+      setIsSavingParent(false);
     }
   };
 
   const handleSubmit = async () => {
     console.log("[Register] handleSubmit - start");
-    const parent = parents.find((p) => p.id === selectedParent);
+    const parent = parentList.find((p) => p.id === selectedParent);
     console.log(
       "[Register] handleSubmit - selectedParent",
       selectedParent,
@@ -153,6 +201,7 @@ export default function RegisterSequential() {
 
     console.log("[Register] handleSubmit - childPayload", childPayload);
     try {
+      setIsSubmittingChild(true);
       const created = await createChild(childPayload as any);
       console.log("[Register] handleSubmit - created child", created);
       await fetchChildren();
@@ -165,11 +214,17 @@ export default function RegisterSequential() {
       setCurrentStep("select-parent");
     } catch (err: any) {
       console.error("[Register] handleSubmit - error creating child", err);
+      const message =
+        err?.response?.data?.message ||
+        err?.message ||
+        "Failed to register child";
       toast({
         title: "Error",
-        description: "Failed to register child",
+        description: message,
         variant: "destructive",
       });
+    } finally {
+      setIsSubmittingChild(false);
     }
   };
 
@@ -202,13 +257,17 @@ export default function RegisterSequential() {
         {/* Step 1: Select Parent */}
         {currentStep === "select-parent" && (
           <ParentStep
-            parents={parents}
+            parents={parentList}
             onSelect={(id) => {
               setSelectedParent(id);
               setCurrentStep("child-info");
             }}
             onAddNew={() => setCurrentStep("add-parent")}
-            onNext={() => setParentPage((p) => p + 1)}
+            onNext={
+              parentSearch.trim()
+                ? undefined
+                : () => setParentPage((p) => p + 1)
+            }
             onSearch={(q: string) => {
               setParentPage(1);
               setParentSearch(q || "");
@@ -222,6 +281,7 @@ export default function RegisterSequential() {
           <NewParentStep
             onSave={handleAddParent}
             onCancel={() => setCurrentStep("select-parent")}
+            isSaving={isSavingParent}
           />
         )}
 
@@ -242,13 +302,20 @@ export default function RegisterSequential() {
               </Button>
               <Button
                 className="flex-1"
+                disabled={isSubmittingChild}
                 onClick={async () => {
                   const errs = validateChildForm();
                   setChildErrors(errs);
                   if (Object.keys(errs).length === 0) await handleSubmit();
                 }}
               >
-                Submit
+                {isSubmittingChild ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <LoaderIcon className="w-4 h-4" /> Submitting...
+                  </span>
+                ) : (
+                  "Submit"
+                )}
               </Button>
             </div>
           </>

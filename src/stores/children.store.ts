@@ -18,20 +18,18 @@ export const useChildren = create<ChildState>((set) => ({
       console.log("[Store] fetchChildren - api returned", res);
 
       // API may return paginated response or plain array. Normalize both.
-      if (Array.isArray(res)) {
-        set({ children: res, isLoading: false });
-      } else if ((res as any).data) {
-        set({
-          children: (res as PaginatedResponse<Child>).data,
-          isLoading: false,
-        });
-      } else {
-        // Fallback
-        set({ children: [], isLoading: false });
-      }
+      const data = Array.isArray(res)
+        ? res
+        : (res as any).data
+        ? (res as PaginatedResponse<Child>).data
+        : [];
+
+      set({ children: data, isLoading: false });
+      return data;
     } catch (err) {
       console.error("Error fetching children:", err);
       set({ error: "Failed to load children.", isLoading: false });
+      return [];
     }
   },
 }));

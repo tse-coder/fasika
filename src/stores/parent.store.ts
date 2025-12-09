@@ -18,19 +18,18 @@ export const useParents = create<parentState>((set) => ({
       console.log("[Store] fetchParents - api returned", response);
 
       // API may return a paginated response or a plain array. Normalize both.
-      if (Array.isArray(response)) {
-        set({ parents: response, isLoading: false });
-      } else if ((response as any).data) {
-        set({
-          parents: (response as PaginatedResponse<Parent>).data,
-          isLoading: false,
-        });
-      } else {
-        set({ parents: [], isLoading: false });
-      }
+      const data = Array.isArray(response)
+        ? response
+        : (response as any).data
+        ? (response as PaginatedResponse<Parent>).data
+        : [];
+
+      set({ parents: data, isLoading: false });
+      return data;
     } catch (err) {
       console.error("Error fetching parents:", err);
       set({ error: "Failed to load parents.", isLoading: false });
+      return [];
     }
   },
 }));

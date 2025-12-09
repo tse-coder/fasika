@@ -21,7 +21,7 @@ export interface ParentQuery {
 
 export interface parentState {
   parents: Parent[];
-  fetchParents: (filters?: any) => Promise<void>;
+  fetchParents: (filters?: any) => Promise<Parent[]>;
   isLoading: boolean;
   error: string | null;
 }

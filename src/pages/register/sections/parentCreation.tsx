@@ -11,6 +11,7 @@ import { useState } from "react";
 export function NewParentStep({
   onSave,
   onCancel,
+  isSaving = false,
 }: {
   onSave: (data: {
     fname: string;
@@ -20,6 +21,7 @@ export function NewParentStep({
     email?: string;
   }) => void;
   onCancel: () => void;
+  isSaving?: boolean;
 }) {
   const [form, setForm] = useState({
     fname: "",
@@ -133,11 +135,20 @@ export function NewParentStep({
         </div>
 
         <div className="flex gap-3 pt-2">
-          <Button variant="outline" onClick={onCancel} className="flex-1">
+          <Button
+            variant="outline"
+            onClick={onCancel}
+            className="flex-1"
+            disabled={isSaving}
+          >
             Cancel
           </Button>
-          <Button onClick={handleSave} className="flex-1">
-            Save Parent
+          <Button
+            onClick={handleSave}
+            className="flex-1"
+            disabled={isSaving}
+          >
+            {isSaving ? "Saving..." : "Save Parent"}
           </Button>
         </div>
       </CardContent>

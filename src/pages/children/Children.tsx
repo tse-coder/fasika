@@ -7,15 +7,14 @@ import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { useChildren } from "@/stores/children.store";
 import { Child } from "@/types/child.types";
-import { useParents } from "@/stores/parent.store";
 import { useModalStore } from "@/stores/overlay.store";
 import ChildCard from "./sections/childCard";
 import InfoOverlay from "./sections/infoOverlay";
 import EmptyState from "./sections/emptyState";
+import { fetchParentById } from "@/api/parent.api";
 
 const Children = () => {
-  const { fetchChildren, isLoading,children } = useChildren();
-  const { parents, fetchParents } = useParents();
+  const { fetchChildren, isLoading } = useChildren();
 
   const [list, setList] = useState<Child[]>([]);
 
@@ -25,6 +24,7 @@ const Children = () => {
 
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const debounceTimer = useRef<number | null>(null);
+  const requestIdRef = useRef(0);
 
   const openModal = useModalStore((state) => state.openModal);
 
@@ -32,52 +32,88 @@ const Children = () => {
     if (debounceTimer.current) clearTimeout(debounceTimer.current);
 
     debounceTimer.current = window.setTimeout(() => {
-      setDebouncedSearch(search.trim());
+      const nextSearch = search.trim();
+      setPage(1);
+      setDebouncedSearch(nextSearch);
     }, 500);
 
     return () => debounceTimer.current && clearTimeout(debounceTimer.current);
   }, [search]);
 
   useEffect(() => {
+    let cancelled = false;
+    const currentRequest = ++requestIdRef.current;
+
     const loadChildren = async () => {
-      await fetchChildren({ page, q: debouncedSearch });
+      const params =
+        debouncedSearch.trim().length > 0
+          ? { query: debouncedSearch.trim() }
+          : { page };
 
-      if (!Array.isArray(children)) return;
+      const data = (await fetchChildren(params)) || [];
 
-      if (page === 1) {
-        setList(children); 
-      } else {
-        setList((prev) => [...prev, ...children]);
-      }
+      if (cancelled || currentRequest !== requestIdRef.current) return;
+
+      setList((prev) =>
+        page === 1
+          ? data
+          : [
+              ...prev,
+              ...data.filter((child) => !prev.some((c) => c.id === child.id)),
+            ]
+      );
+      setIsLoadingMore(false);
     };
 
     loadChildren();
-  }, [page, debouncedSearch]);
+    return () => {
+      cancelled = true;
+    };
+  }, [page, debouncedSearch, fetchChildren]);
 
-  const loadMore = async () => {
+  const loadMore = () => {
+    if (isLoading || isLoadingMore || debouncedSearch.trim()) return;
     setIsLoadingMore(true);
-    const nextPage = page + 1;
+    setPage((prev) => prev + 1);
+  };
 
-    await fetchChildren({ page: nextPage, q: debouncedSearch });
-    if (Array.isArray(children)) {
-      setList((prev) => [...prev, ...children]);
-      setPage(nextPage);
+  const LoadingOverlay = ({ message }: { message: string }) => (
+    <div className="flex flex-col items-center justify-center py-8 gap-3">
+      <LoaderIcon className="w-6 h-6" />
+      <p className="text-sm text-muted-foreground">{message}</p>
+    </div>
+  );
+
+  const showInfoOverlay = async (child: Child) => {
+    const parentIds = (child.parents || []).map((p) => p.id).filter(Boolean);
+
+    if (parentIds.length === 0) {
+      openModal(<InfoOverlay child={child} parentInfo={[]} />);
+      return;
     }
-    setIsLoadingMore(false);
+
+    openModal(<LoadingOverlay message="Fetching parent details..." />);
+
+    try {
+      const parents = (
+        await Promise.all(parentIds.map((id) => fetchParentById(id)))
+      ).filter(Boolean);
+
+      openModal(<InfoOverlay child={child} parentInfo={parents} />);
+    } catch (err) {
+      console.error("[Children] Failed to load parent info", err);
+      openModal(
+        <div className="py-6">
+          <p className="font-semibold">Unable to load parent details.</p>
+          <p className="text-sm text-muted-foreground mt-1">
+            Please try again.
+          </p>
+        </div>
+      );
+    }
   };
 
-  const showInfoOverlay = (child: Child) => {
-    const parentIds = (child.parents || []).map((p) => p.id);
-
-    fetchParents({ ids: parentIds });
-
-    const parentInfo = parents.filter((p) => parentIds.includes(p.id));
-    openModal(<InfoOverlay child={child} parentInfo={parentInfo} />);
-  };
-
-  const showSkeleton =
-    (isLoading && list.length === 0) || // initial load
-    (debouncedSearch !== "" && isLoading); // searching
+  const showSkeleton = isLoading && page === 1 && list.length === 0;
 
   return (
     <DashboardLayout>
@@ -121,20 +157,22 @@ const Children = () => {
             </div>
 
             {/* Load more */}
-            <div className="mt-4 flex justify-center">
-              <Button
-                variant="link"
-                size="lg"
-                onClick={loadMore}
-                disabled={isLoadingMore}
-              >
-                {isLoadingMore ? (
-                  <LoaderIcon className="w-4 h-4" />
-                ) : (
-                  "Load more"
-                )}
-              </Button>
-            </div>
+            {debouncedSearch.trim() === "" && (
+              <div className="mt-4 flex justify-center">
+                <Button
+                  variant="link"
+                  size="lg"
+                  onClick={loadMore}
+                  disabled={isLoadingMore}
+                >
+                  {isLoadingMore ? (
+                    <LoaderIcon className="w-4 h-4" />
+                  ) : (
+                    "Load more"
+                  )}
+                </Button>
+              </div>
+            )}
           </>
         )}
       </div>

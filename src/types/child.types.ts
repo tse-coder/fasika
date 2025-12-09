@@ -19,7 +19,7 @@ export interface ChildQuery {
 }
 export interface ChildState {
   children: Child[];
-  fetchChildren: (filters?: any) => Promise<void>;
+  fetchChildren: (filters?: any) => Promise<Child[]>;
   isLoading: boolean;
   error: string | null;
 }
