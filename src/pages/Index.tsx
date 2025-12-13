@@ -3,25 +3,49 @@ import { StatCard } from "@/components/dashboard/StatCard";
 import { PaymentChart } from "@/components/dashboard/PaymentChart";
 import { RecentPayments } from "@/components/dashboard/RecentPayments";
 import { useChildren } from "@/stores/children.store";
+import { usePayments } from "@/stores/payment.store";
 import { Users, UserCheck, Wallet, TrendingUp } from "lucide-react";
 import { useEffect } from "react";
 
 const Dashboard = () => {
   const { children, fetchChildren } = useChildren();
+  const { payments, fetchPayments } = usePayments();
 
-  // fetch children from backend
+  // fetch children and payments from backend
   useEffect(() => {
     fetchChildren();
-  }, []);
+    fetchPayments({ limit: 1000 });
+  }, [fetchChildren, fetchPayments]);
+
+  // Calculate stats
+  const thisMonth = new Date().getMonth();
+  const thisYear = new Date().getFullYear();
+  const thisMonthPayments = payments.filter((p) => {
+    const paymentDate = new Date(p.payment_date);
+    return (
+      paymentDate.getMonth() === thisMonth &&
+      paymentDate.getFullYear() === thisYear
+    );
+  });
+
+  const totalCollected = thisMonthPayments.reduce(
+    (sum, p) => sum + parseFloat(p.total_amount),
+    0
+  );
+
+  const expectedTotal = children
+    .filter((c) => c.is_active)
+    .reduce((sum, c) => sum + (c.monthlyFee || 0), 0);
+
+  const collectionRate =
+    expectedTotal > 0 ? (totalCollected / expectedTotal) * 100 : 0;
 
   const stats = {
     totalChildren: children.length,
     activeChildren: children.filter((c) => c.is_active).length,
-    totalCollected: 0,
-    expectedTotal: children
-      .filter((c) => c.is_active)
-      .reduce((sum, c) => sum + (c.monthlyFee || 0), 0),
-    collectionRate: 0,
+    totalCollected: totalCollected,
+    expectedTotal: expectedTotal,
+    collectionRate: collectionRate,
   };
 
   return (

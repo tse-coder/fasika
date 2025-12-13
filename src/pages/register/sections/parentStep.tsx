@@ -154,11 +154,6 @@ export function ParentStep({
           <Button onClick={onAddNew} variant="outline" className="flex-1">
             Add New Parent
           </Button>
-          {onNext && (
-            <Button onClick={onNext} variant="ghost" className="w-32">
-              Next
-            </Button>
-          )}
         </div>
       </CardContent>
     </Card>

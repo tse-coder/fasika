@@ -110,3 +110,14 @@
     @apply text-xs font-medium uppercase tracking-wider text-muted-foreground;
   }
 }
+
+
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}

@@ -6,7 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import Children from "./pages/children/Children";
 import Register from "./pages/register/Register";
-import Payments from "./pages/Payments";
+import Payments from "./pages/payment/Payments";
 import NotFound from "./pages/NotFound";
 import { OverlayModal } from "./components/overlay";
 

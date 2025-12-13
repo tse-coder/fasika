@@ -89,4 +89,9 @@ export const apiPut = async <T>(
   return res.data;
 };
 
+export const apiDelete = async <T>(url: string): Promise<T> => {
+  const res = await client.delete<T>(url);
+  return res.data;
+};
+
 export default client;
