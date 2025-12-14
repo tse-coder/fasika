@@ -106,39 +106,14 @@ export function StudentSearch({
   };
 
   return (
-    <div className="space-y-3">
-      {/* Selected Children Filters */}
-      {selectedChildren.length > 0 && (
-        <div className="flex flex-wrap gap-2">
-          {selectedChildren.map((child) => (
-            <Badge
-              key={child.id}
-              variant="secondary"
-              className="px-3 py-1.5 text-sm flex items-center gap-2"
-            >
-              <span>
-                {child.fname} {child.lname}
-              </span>
-              <button
-                type="button"
-                onClick={() => onRemove(child.id)}
-                className="ml-1 rounded-full hover:bg-muted transition-colors p-0.5"
-                aria-label={`Remove ${child.fname} ${child.lname}`}
-              >
-                <X className="w-3 h-3" />
-              </button>
-            </Badge>
-          ))}
-        </div>
-      )}
-
+    <div className="space-x-3 flex flex-row justify-between items-center">
       {/* Search Input */}
       <Popover open={open} onOpenChange={setOpen}>
         <div className="relative flex-1 max-w-sm">
           <PopoverTrigger asChild>
             <Input
               placeholder="Search and select students..."
-              value={search}
+              value={"Filter with a student"}
               onChange={(e) => setSearch(e.target.value)}
               onFocus={() => setOpen(true)}
               className="pl-10"
@@ -205,6 +180,31 @@ export function StudentSearch({
           </Command>
         </PopoverContent>
       </Popover>
+
+      {/* Selected Children Filters */}
+      {selectedChildren.length > 0 && (
+        <div className="flex flex-row gap-2 items-center overflow-x-auto whitespace-nowrap max-w-[500px] flex-nowrap">
+          {selectedChildren.map((child) => (
+            <Badge
+              key={child.id}
+              variant="secondary"
+              className="px-3 py-1.5 text-sm flex items-center gap-2 whitespace-nowrap shrink-0"
+            >
+              <span className="truncate max-w-[180px]">
+                {child.fname} {child.lname}
+              </span>
+              <button
+                type="button"
+                onClick={() => onRemove(child.id)}
+                className="ml-1 rounded-full hover:bg-muted transition-colors p-0.5"
+                aria-label={`Remove ${child.fname} ${child.lname}`}
+              >
+                <X className="w-3 h-3" />
+              </button>
+            </Badge>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

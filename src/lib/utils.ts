@@ -35,3 +35,14 @@ export const formatDate = (dateStr: string): string => {
     day: "numeric",
   });
 }
+function startOfDay(d: Date) {
+  return new Date(d.getFullYear(), d.getMonth(), d.getDate());
+}
+
+function formatMonth(date: Date) {
+  return date.toLocaleDateString("en-US", { month: "short", year: "numeric" });
+}
+
+function formatYear(date: Date) {
+  return date.getFullYear().toString();
+}

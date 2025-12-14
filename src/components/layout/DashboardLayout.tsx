@@ -27,7 +27,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
-    <div className="min-h-screen bg-background flex">
+    <div className="max-h-screen bg-background flex">
       {/* Mobile overlay */}
       {sidebarOpen && (
         <div 

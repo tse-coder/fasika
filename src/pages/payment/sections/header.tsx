@@ -58,7 +58,7 @@ function PaymentHeader({
     <div className="space-y-4">
       {/* Student Search and Payment Button */}
       <div className="flex flex-col sm:flex-row justify-between gap-4">
-        <div className="flex-1 max-w-md">
+        <div className="flex-1">
           <StudentSearch
             selectedChildren={selectedChildren}
             onSelect={onSelectChild}
