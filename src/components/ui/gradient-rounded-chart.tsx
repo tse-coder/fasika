@@ -37,6 +37,8 @@ type GradientRoundedAreaChartProps = {
     value: string;
     direction: "up" | "down";
   };
+  timeRange?: TimeRange;
+  onTimeRangeChange?: (range: TimeRange) => void;
 };
 
 const chartConfig = {
@@ -53,8 +55,22 @@ export function GradientRoundedAreaChart({
   data,
   total,
   trend,
+  timeRange: externalTimeRange,
+  onTimeRangeChange,
 }: GradientRoundedAreaChartProps) {
-  const [timeRange, setTimeRange] = useState<TimeRange>("month");
+  const [internalTimeRange, setInternalTimeRange] =
+    useState<TimeRange>("month");
+  const timeRange = externalTimeRange ?? internalTimeRange;
+
+  const handleTimeRangeChange = (v: string) => {
+    const newRange = v as TimeRange;
+    if (onTimeRangeChange) {
+      onTimeRangeChange(newRange);
+    } else {
+      setInternalTimeRange(newRange);
+    }
+  };
+
   return (
     <Card>
       <div className="flex flex-row items-start justify-between">
@@ -81,11 +97,8 @@ export function GradientRoundedAreaChart({
           </CardTitle>
           {description && <CardDescription>{description}</CardDescription>}
         </CardHeader>
-        <Select
-          value={timeRange}
-          onValueChange={(v) => setTimeRange(v as TimeRange)}
-        >
-          <SelectTrigger className="w-[180px]">
+        <Select value={timeRange} onValueChange={handleTimeRangeChange}>
+          <SelectTrigger className="w-[180px] m-5">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -108,8 +121,19 @@ export function GradientRoundedAreaChart({
           </div>
         )}
 
-        <ChartContainer config={chartConfig} className="h-[300px]">
-          <AreaChart data={data}>
+        <ChartContainer
+          config={chartConfig}
+          className="h-[250px] sm:h-[300px] md:h-[350px] w-full"
+        >
+          <AreaChart
+            data={data}
+            margin={{
+              top: 10,
+              right: 10,
+              left: 10,
+              bottom: 40,
+            }}
+          >
             <CartesianGrid vertical={false} strokeDasharray="3 3" />
 
             <XAxis
@@ -117,9 +141,18 @@ export function GradientRoundedAreaChart({
               tickLine={false}
               axisLine={false}
               tickMargin={8}
+              angle={-45}
+              textAnchor="end"
+              height={60}
+              interval="preserveStartEnd"
+              tick={{ fontSize: 12 }}
             />
 
-            <YAxis tickFormatter={(v) => `ETB ${(v / 1000).toFixed(0)}k`} />
+            <YAxis
+              tickFormatter={(v) => `ETB ${(v / 1000).toFixed(0)}k`}
+              width={60}
+              tick={{ fontSize: 12 }}
+            />
 
             <ChartTooltip
               cursor={false}

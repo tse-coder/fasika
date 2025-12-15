@@ -53,7 +53,7 @@ export function PaymentInfoOverlay({
   };
 
   return (
-    <div className="space-y-6 overflow-y-scroll max-h-[80vh] scrollbar-none">
+    <div className="space-y-6 overflow-y-auto max-h-[80vh] scrollbar-none">
       {/* Payment Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">

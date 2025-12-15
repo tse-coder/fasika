@@ -9,10 +9,19 @@ export default defineConfig(({ mode }) => ({
     host: "::",
     port: 8080,
   },
-  plugins: [react(), mode === "development" && componentTagger()].filter(Boolean),
+  plugins: [react(), mode === "development" && componentTagger()].filter(
+    Boolean
+  ),
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
+    },
+  },
+  optimizeDeps: {
+    include: ["html2pdf.js", "html2canvas", "jspdf"],
+    esbuildOptions: {
+      // Handle CommonJS modules that don't have proper ES module exports
+      mainFields: ["module", "main"],
     },
   },
 }));

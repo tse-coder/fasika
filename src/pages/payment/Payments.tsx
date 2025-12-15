@@ -6,12 +6,13 @@ import { usePayments } from "@/stores/payment.store";
 import { useModalStore } from "@/stores/overlay.store";
 import type { Child } from "@/types/child.types";
 import type { Payment } from "@/types/payment.types";
+import { CreatePaymentResponse } from "@/types/payment.types";
 import { useToast } from "@/hooks/use-toast";
 import PaymentHeader from "./sections/header";
 import { HeaderExtra } from "./sections/headerExtra";
 import PaymentsTable from "./sections/paymentsTable";
 import { PaymentInfoOverlay } from "./sections/paymentInfoOverlay";
-import { LoaderIcon } from "@/components/ui/skeleton-card";
+import { InvoiceOverlay } from "./sections/invoiceOverlay";
 
 const Payments = () => {
   const [searchParams] = useSearchParams();
@@ -19,6 +20,7 @@ const Payments = () => {
   const { children, fetchChildren } = useChildren();
   const {
     payments,
+    pagination,
     fetchPayments,
     createPayment,
     deletePayment,
@@ -33,10 +35,15 @@ const Payments = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [page, setPage] = useState(1);
+  const [invoiceData, setInvoiceData] = useState<{
+    payment: CreatePaymentResponse;
+    child: Child | null;
+  } | null>(null);
 
   // Load children and payments on mount
   useEffect(() => {
-    fetchChildren({ page: 1 });
+    // Load children (first page, will load more as needed)
+    fetchChildren({ page: 1, limit: 100 });
     loadPayments();
   }, [fetchChildren]);
 
@@ -97,8 +104,19 @@ const Payments = () => {
 
       setOpen(false);
 
-      // Reload payments
+      // Reload payments first
       await loadPayments();
+
+      // Find child for invoice (after reload, children might be updated)
+      const child = children.find((c) => c.id === data.child_id);
+
+      // Show invoice overlay only if we have valid payment data
+      if (response && response.payment && response.recordedMonths.length > 0) {
+        setInvoiceData({
+          payment: response,
+          child: child || null,
+        });
+      }
     } catch (err: any) {
       const errorMessage =
         err?.response?.data?.message ||
@@ -182,49 +200,62 @@ const Payments = () => {
     setSelectedChildren(selectedChildren.filter((c) => c.id !== childId));
   };
 
+  // Fetch missing children when payments are loaded
+  useEffect(() => {
+    if (payments.length > 0 && children.length > 0) {
+      const paymentChildIds = new Set(payments.map((p) => p.child_id));
+      const loadedChildIds = new Set(children.map((c) => c.id));
+      const missingIds = Array.from(paymentChildIds).filter(
+        (id) => !loadedChildIds.has(id)
+      );
+
+      // If there are missing children, try to load more
+      if (missingIds.length > 0) {
+        // Load a larger page to hopefully get the missing children
+        fetchChildren({ page: 1, limit: 200 });
+      }
+    }
+  }, [payments, children, fetchChildren]);
+
   const getChildName = (childId: number) => {
     const child = children.find((c) => c.id === childId);
     return child ? `${child.fname} ${child.lname}` : "Unknown";
   };
 
   // Filter payments based on search, selected children, and payment method
-  const filteredPayments = payments
-    .filter((p) => {
-      // Filter by selected children
-      if (selectedChildren.length > 0) {
-        const isSelected = selectedChildren.some((c) => c.id === p.child_id);
-        if (!isSelected) return false;
-      }
+  // Note: Server-side filtering is handled by loadPayments, this is for client-side search
+  const filteredPayments = payments.filter((p) => {
+    // Filter by selected children (if multiple selected, show all)
+    if (selectedChildren.length > 0) {
+      const isSelected = selectedChildren.some((c) => c.id === p.child_id);
+      if (!isSelected) return false;
+    }
 
-      // Filter by payment method
-      if (selectedMethod !== "all" && p.method !== selectedMethod) {
-        return false;
-      }
+    // Filter by payment method
+    if (selectedMethod !== "all" && p.method !== selectedMethod) {
+      return false;
+    }
 
-      // Filter by search query
-      if (search.trim()) {
-        const childName = getChildName(p.child_id).toLowerCase();
-        const searchLower = search.toLowerCase();
-        return (
-          childName.includes(searchLower) ||
-          p.method.toLowerCase().includes(searchLower) ||
-          parseFloat(p.total_amount).toString().includes(searchLower) ||
-          (p.notes && p.notes.toLowerCase().includes(searchLower)) ||
-          p.monthly_records.some((mr) =>
-            new Date(mr.month)
-              .toLocaleDateString()
-              .toLowerCase()
-              .includes(searchLower)
-          )
-        );
-      }
+    // Filter by search query
+    if (search.trim()) {
+      const childName = getChildName(p.child_id).toLowerCase();
+      const searchLower = search.toLowerCase();
+      return (
+        childName.includes(searchLower) ||
+        p.method.toLowerCase().includes(searchLower) ||
+        parseFloat(p.total_amount).toString().includes(searchLower) ||
+        (p.notes && p.notes.toLowerCase().includes(searchLower)) ||
+        p.monthly_records.some((mr) =>
+          new Date(mr.month)
+            .toLocaleDateString()
+            .toLowerCase()
+            .includes(searchLower)
+        )
+      );
+    }
 
-      return true;
-    })
-    .sort(
-      (a, b) =>
-        new Date(b.payment_date).getTime() - new Date(a.payment_date).getTime()
-    );
+    return true;
+  });
 
   return (
     <DashboardLayout>
@@ -254,8 +285,32 @@ const Payments = () => {
           getChildName={getChildName}
           filteredPayments={filteredPayments}
           onPaymentClick={handlePaymentClick}
+          pagination={pagination}
+          onPageChange={setPage}
+          currentPage={page}
         />
       </div>
+
+      {/* Invoice Overlay Modal */}
+      {invoiceData && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+          onClick={() => setInvoiceData(null)}
+        >
+          <div
+            className="bg-background rounded-lg shadow-lg max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="overflow-y-auto flex-1">
+              <InvoiceOverlay
+                payment={invoiceData.payment}
+                child={invoiceData.child}
+                onClose={() => setInvoiceData(null)}
+              />
+            </div>
+          </div>
+        </div>
+      )}
     </DashboardLayout>
   );
 };

@@ -16,6 +16,12 @@ import {
 
 export const usePayments = create<PaymentState>((set, get) => ({
   payments: [],
+  pagination: {
+    total: 0,
+    page: 1,
+    limit: 20,
+    totalPages: 0,
+  },
   isLoading: false,
   error: null,
 
@@ -24,7 +30,16 @@ export const usePayments = create<PaymentState>((set, get) => ({
     try {
       const response = await fetchPayments(filters);
       const payments = response.data || [];
-      set({ payments, isLoading: false });
+      set({
+        payments,
+        pagination: {
+          total: response.total || 0,
+          page: response.page || 1,
+          limit: response.limit || 20,
+          totalPages: response.totalPages || 0,
+        },
+        isLoading: false,
+      });
       return response;
     } catch (err: any) {
       console.error("Error fetching payments:", err);
