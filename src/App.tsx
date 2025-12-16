@@ -12,6 +12,7 @@ import Login from "./pages/Login";
 import NotFound from "./pages/NotFound";
 import { OverlayModal } from "./components/overlay";
 import { ProtectedRoute } from "./components/ProtectedRoute";
+import Admins from "./pages/admins/admints";
 
 const queryClient = new QueryClient();
 
@@ -61,6 +62,14 @@ const App = () => (
             element={
               <ProtectedRoute>
                 <LatePayments />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admins"
+            element={
+              <ProtectedRoute>
+                <Admins />
               </ProtectedRoute>
             }
           />

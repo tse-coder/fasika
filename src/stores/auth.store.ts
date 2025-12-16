@@ -17,7 +17,7 @@ interface AuthState {
 
 export const useAuth = create<AuthState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       isAuthenticated: false,
       user: null,
 
@@ -46,8 +46,7 @@ export const useAuth = create<AuthState>()(
       },
 
       checkAuth: () => {
-        const state = useAuth.getState();
-        return state.isAuthenticated;
+        return get().isAuthenticated;
       },
     }),
     {

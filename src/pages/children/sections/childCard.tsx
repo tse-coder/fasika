@@ -22,13 +22,13 @@ type ChildCardProps = {
 function ChildCard({ child, showInfoOverlay, onChildUpdate }: ChildCardProps) {
   const { toast } = useToast();
 
-  const handleDeactivate = async (e: React.MouseEvent) => {
+  const handleToggleActivate = async (e: React.MouseEvent) => {
     e.stopPropagation();
     try {
-      await updateChild(child.id, { is_active: false });
+      await updateChild(child.id, { is_active: !child.is_active });
       toast({
-        title: "Child Deactivated",
-        description: `${child.fname} ${child.lname} has been deactivated.`,
+        title: child.is_active ? "Deactivated" : "Activated",
+        description: `${child.fname} ${child.lname} has been ${child.is_active ? "deactivated" : "activated"}.`,
       });
       if (onChildUpdate) {
         onChildUpdate();
@@ -80,11 +80,9 @@ function ChildCard({ child, showInfoOverlay, onChildUpdate }: ChildCardProps) {
             <Link to={`/payments?child=${child.id}`}>
               <DropdownMenuItem>View Payments</DropdownMenuItem>
             </Link>
-            {child.is_active && (
-              <DropdownMenuItem onClick={handleDeactivate}>
-                Deactivate
+              <DropdownMenuItem onClick={handleToggleActivate}>
+                {child.is_active ? "Deactivate" : "Activate"}
               </DropdownMenuItem>
-            )}
           </DropdownMenuContent>
         </DropdownMenu>
       </div>

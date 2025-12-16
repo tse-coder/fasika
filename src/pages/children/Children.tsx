@@ -155,8 +155,8 @@ const Children = () => {
     if (minAge || maxAge) {
       filtered = filtered.filter((child) => {
         const age = calculateAge(child.birthdate);
-        if (minAge && age < parseInt(minAge)) return false;
-        if (maxAge && age > parseInt(maxAge)) return false;
+        if (minAge && age as number < parseInt(minAge)) return false;
+        if (maxAge && age as number > parseInt(maxAge)) return false;
         return true;
       });
     }

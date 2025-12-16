@@ -9,6 +9,7 @@ import {
   X,
   LogOut,
   AlertTriangle,
+  UsersIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/stores/auth.store";
@@ -23,7 +24,8 @@ const navItems = [
   { path: "/children", icon: Users, label: "Children" },
   { path: "/register", icon: UserPlus, label: "Register Child" },
   { path: "/payments", icon: CreditCard, label: "Payments" },
-  { path: "/late-payments", icon: AlertTriangle, label: "Late Payments" },
+  { path: "/late-payments", icon: AlertTriangle, label: "Unpaid" },
+  { path: "/admins", icon: UsersIcon, label: "Admins" },
 ];
 
 export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
