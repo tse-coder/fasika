@@ -69,6 +69,12 @@ export interface PaymentReport {
 
 export interface PaymentState {
   payments: Payment[];
+  pagination: {
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  };
   fetchPayments: (filters?: {
     child_id?: number;
     parent_id?: number;

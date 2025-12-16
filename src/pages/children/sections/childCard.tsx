@@ -1,17 +1,48 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { calculateAge } from "@/lib/utils";
 import { Child } from "@/types/child.types";
 import { MoreVertical } from "lucide-react";
 import { Link } from "react-router-dom";
+import { updateChild } from "@/api/child.api";
+import { useToast } from "@/hooks/use-toast";
 
 type ChildCardProps = {
-    child: Child;
-    showInfoOverlay: (child: any) => void;
+  child: Child;
+  showInfoOverlay: (child: any) => void;
+  onChildUpdate?: () => void;
 };
 
-function ChildCard({ child, showInfoOverlay }: ChildCardProps) {
+function ChildCard({ child, showInfoOverlay, onChildUpdate }: ChildCardProps) {
+  const { toast } = useToast();
+
+  const handleToggleActivate = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    try {
+      await updateChild(child.id, { is_active: !child.is_active });
+      toast({
+        title: child.is_active ? "Deactivated" : "Activated",
+        description: `${child.fname} ${child.lname} has been ${child.is_active ? "deactivated" : "activated"}.`,
+      });
+      if (onChildUpdate) {
+        onChildUpdate();
+      }
+    } catch (err: any) {
+      toast({
+        title: "Error",
+        description:
+          err?.response?.data?.message || "Failed to deactivate child.",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <div
       key={child.id}
@@ -39,7 +70,7 @@ function ChildCard({ child, showInfoOverlay }: ChildCardProps) {
         </div>
 
         <DropdownMenu>
-          <DropdownMenuTrigger asChild>
+          <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
             <Button variant="ghost" size="icon">
               <MoreVertical className="w-4 h-4" />
             </Button>
@@ -49,20 +80,17 @@ function ChildCard({ child, showInfoOverlay }: ChildCardProps) {
             <Link to={`/payments?child=${child.id}`}>
               <DropdownMenuItem>View Payments</DropdownMenuItem>
             </Link>
+              <DropdownMenuItem onClick={handleToggleActivate}>
+                {child.is_active ? "Deactivate" : "Activate"}
+              </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
 
-      <div className="mt-4 pt-4 border-t border-border flex justify-between">
+      <div className="mt-4 pt-4 border-t border-border">
         <div>
           <p className="text-xs text-muted-foreground">Age</p>
           <p className="font-medium">{calculateAge(child.birthdate)} years</p>
-        </div>
-        <div className="text-right">
-          <p className="text-xs text-muted-foreground">Fee</p>
-          <p className="font-semibold">
-            ETB {child.monthlyFee?.toLocaleString() ?? "0"}
-          </p>
         </div>
       </div>
     </div>

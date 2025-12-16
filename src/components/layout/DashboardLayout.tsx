@@ -1,46 +1,61 @@
-import { ReactNode, useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { 
-  LayoutDashboard, 
-  Users, 
-  CreditCard, 
+import { ReactNode, useState } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import {
+  LayoutDashboard,
+  Users,
+  CreditCard,
   UserPlus,
   Menu,
   X,
-  LogOut
-} from 'lucide-react';
-import { cn } from '@/lib/utils';
+  LogOut,
+  AlertTriangle,
+  UsersIcon,
+} from "lucide-react";
+import { cn } from "@/lib/utils";
+import { useAuth } from "@/stores/auth.store";
+import { Button } from "@/components/ui/button";
 
 interface DashboardLayoutProps {
   children: ReactNode;
 }
 
 const navItems = [
-  { path: '/', icon: LayoutDashboard, label: 'Dashboard' },
-  { path: '/children', icon: Users, label: 'Children' },
-  { path: '/register', icon: UserPlus, label: 'Register Child' },
-  { path: '/payments', icon: CreditCard, label: 'Payments' },
+  { path: "/", icon: LayoutDashboard, label: "Dashboard" },
+  { path: "/children", icon: Users, label: "Children" },
+  { path: "/register", icon: UserPlus, label: "Register Child" },
+  { path: "/payments", icon: CreditCard, label: "Payments" },
+  { path: "/late-payments", icon: AlertTriangle, label: "Unpaid" },
+  { path: "/admins", icon: UsersIcon, label: "Admins" },
 ];
 
 export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { logout, user } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  const handleLogout = () => {
+    logout();
+    navigate("/login");
+  };
 
   return (
     <div className="max-h-screen bg-background flex">
       {/* Mobile overlay */}
       {sidebarOpen && (
-        <div 
+        <div
           className="fixed inset-0 bg-foreground/20 z-40 lg:hidden"
           onClick={() => setSidebarOpen(false)}
         />
       )}
 
       {/* Sidebar */}
-      <aside className={cn(
-        "fixed lg:static inset-y-0 left-0 z-50 w-64 bg-sidebar transform transition-transform duration-300 ease-in-out lg:translate-x-0",
-        sidebarOpen ? "translate-x-0" : "-translate-x-full"
-      )}>
+      <aside
+        className={cn(
+          "fixed lg:static inset-y-0 left-0 z-50 w-64 bg-sidebar transform transition-transform duration-300 ease-in-out lg:translate-x-0",
+          sidebarOpen ? "translate-x-0" : "-translate-x-full"
+        )}
+      >
         <div className="flex flex-col h-full">
           {/* Logo */}
           <div className="p-6 border-b border-sidebar-border">
@@ -58,8 +73,8 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                   onClick={() => setSidebarOpen(false)}
                   className={cn(
                     "flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200",
-                    isActive 
-                      ? "bg-sidebar-primary text-sidebar-primary-foreground rounded-l-none border-r-3 border-r-primary" 
+                    isActive
+                      ? "bg-sidebar-primary text-sidebar-primary-foreground rounded-l-none border-r-3 border-r-primary"
                       : "text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground hover:rounded-l-none"
                   )}
                 >
@@ -71,16 +86,28 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
           </nav>
 
           {/* Footer */}
-          <div className="p-4 border-t border-sidebar-border">
+          <div className="p-4 border-t border-sidebar-border space-y-2">
             <div className="flex items-center gap-3 px-4 py-3 text-sidebar-foreground/60">
               <div className="w-8 h-8 rounded-full bg-sidebar-accent flex items-center justify-center">
-                <span className="text-sm font-medium text-sidebar-accent-foreground">A</span>
+                <span className="text-sm font-medium text-sidebar-accent-foreground">
+                  {user?.username?.[0]?.toUpperCase() || "A"}
+                </span>
               </div>
               <div className="flex-1">
-                <p className="text-sm font-medium text-sidebar-foreground">Admin</p>
+                <p className="text-sm font-medium text-sidebar-foreground">
+                  {user?.username || "Admin"}
+                </p>
                 <p className="text-xs text-sidebar-foreground/60">Manager</p>
               </div>
             </div>
+            <Button
+              variant="ghost"
+              className="w-full justify-start text-sidebar-foreground/80 hover:text-sidebar-foreground hover:bg-sidebar-accent"
+              onClick={handleLogout}
+            >
+              <LogOut className="w-4 h-4 mr-2" />
+              Logout
+            </Button>
           </div>
         </div>
       </aside>
@@ -97,25 +124,24 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
           </button>
           <div className="hidden lg:block">
             <h2 className="text-lg font-semibold text-foreground">
-              {navItems.find(item => item.path === location.pathname)?.label || 'Dashboard'}
+              {navItems.find((item) => item.path === location.pathname)
+                ?.label || "Dashboard"}
             </h2>
           </div>
           <div className="flex items-center gap-4">
             <span className="text-sm text-muted-foreground">
-              {new Date().toLocaleDateString('en-US', { 
-                weekday: 'long', 
-                year: 'numeric', 
-                month: 'long', 
-                day: 'numeric' 
+              {new Date().toLocaleDateString("en-US", {
+                weekday: "long",
+                year: "numeric",
+                month: "long",
+                day: "numeric",
               })}
             </span>
           </div>
         </header>
 
         {/* Page content */}
-        <main className="flex-1 p-4 lg:p-8 overflow-auto">
-          {children}
-        </main>
+        <main className="flex-1 p-4 lg:p-8 overflow-auto">{children}</main>
       </div>
     </div>
   );

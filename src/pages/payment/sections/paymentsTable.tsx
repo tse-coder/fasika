@@ -3,6 +3,15 @@ import { CreditCard } from "lucide-react";
 import React from "react";
 import type { Payment } from "@/types/payment.types";
 import type { Child } from "@/types/child.types";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
 
 type PaymentsTableProps = {
   payments: Payment[];
@@ -10,6 +19,14 @@ type PaymentsTableProps = {
   getChildName: (childId: number) => string;
   filteredPayments: Payment[];
   onPaymentClick: (payment: Payment) => void;
+  pagination: {
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  };
+  onPageChange: (page: number) => void;
+  currentPage: number;
 };
 
 function PaymentsTable({
@@ -18,6 +35,9 @@ function PaymentsTable({
   getChildName,
   filteredPayments,
   onPaymentClick,
+  pagination,
+  onPageChange,
+  currentPage,
 }: PaymentsTableProps) {
   const formatMonth = (monthString: string) => {
     const date = new Date(monthString);
@@ -118,6 +138,76 @@ function PaymentsTable({
               ))}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {/* Pagination */}
+      {pagination.totalPages > 1 && (
+        <div className="mt-4 border-t pt-4">
+          <Pagination>
+            <PaginationContent>
+              <PaginationItem>
+                <PaginationPrevious
+                  onClick={() =>
+                    currentPage > 1 && onPageChange(currentPage - 1)
+                  }
+                  className={
+                    currentPage === 1
+                      ? "pointer-events-none opacity-50"
+                      : "cursor-pointer"
+                  }
+                />
+              </PaginationItem>
+
+              {Array.from(
+                { length: pagination.totalPages },
+                (_, i) => i + 1
+              ).map((pageNum) => {
+                // Show first page, last page, current page, and pages around current
+                if (
+                  pageNum === 1 ||
+                  pageNum === pagination.totalPages ||
+                  (pageNum >= currentPage - 1 && pageNum <= currentPage + 1)
+                ) {
+                  return (
+                    <PaginationItem key={pageNum}>
+                      <PaginationLink
+                        onClick={() => onPageChange(pageNum)}
+                        isActive={pageNum === currentPage}
+                        className="cursor-pointer"
+                      >
+                        {pageNum}
+                      </PaginationLink>
+                    </PaginationItem>
+                  );
+                } else if (
+                  pageNum === currentPage - 2 ||
+                  pageNum === currentPage + 2
+                ) {
+                  return (
+                    <PaginationItem key={pageNum}>
+                      <PaginationEllipsis />
+                    </PaginationItem>
+                  );
+                }
+                return null;
+              })}
+
+              <PaginationItem>
+                <PaginationNext
+                  onClick={() =>
+                    currentPage < pagination.totalPages &&
+                    onPageChange(currentPage + 1)
+                  }
+                  className={
+                    currentPage === pagination.totalPages
+                      ? "pointer-events-none opacity-50"
+                      : "cursor-pointer"
+                  }
+                />
+              </PaginationItem>
+            </PaginationContent>
+          </Pagination>
         </div>
       )}
     </div>

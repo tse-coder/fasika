@@ -40,16 +40,6 @@ function InfoOverlay({ child, parentInfo }: InfoOverlayProps) {
             <p className="font-medium">{calculateAge(child.birthdate)} years</p>
           </div>
         </div>
-
-        <div className="flex items-center gap-3">
-          <Badge variant="outline" className="px-2 py-1 text-xs">
-            ETB
-          </Badge>
-          <div>
-            <p className="text-xs text-muted-foreground">Monthly Fee</p>
-            <p className="font-medium">ETB {child.monthlyFee}</p>
-          </div>
-        </div>
       </div>
 
       {/* Parent section */}

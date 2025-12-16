@@ -2,7 +2,10 @@ import { useState, useEffect, useMemo } from "react";
 import { usePayments } from "@/stores/payment.store";
 
 import { LoaderIcon } from "@/components/ui/skeleton-card";
-import { GradientRoundedAreaChart, TimeRange } from "../ui/gradient-rounded-chart";
+import {
+  GradientRoundedAreaChart,
+  TimeRange,
+} from "../ui/gradient-rounded-chart";
 import { startOfDay } from "date-fns";
 
 export const PaymentChart = () => {
@@ -165,6 +168,8 @@ export const PaymentChart = () => {
           description="Filtered by selected time range"
           data={chartData}
           total={totalAmount}
+          timeRange={timeRange}
+          onTimeRangeChange={setTimeRange}
         />
       )}
     </div>

@@ -242,17 +242,6 @@ export default function RegisterSequential() {
   return (
     <DashboardLayout>
       <div className="max-w-2xl mx-auto">
-        <div className="flex items-center gap-4 mb-8">
-          <div className="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center">
-            <UserPlus className="w-7 h-7 text-primary" />
-          </div>
-          <div>
-            <h1 className="dashboard-title">Register New Child</h1>
-            <p className="text-muted-foreground">
-              Add a new child information and submit
-            </p>
-          </div>
-        </div>
 
         {/* Step 1: Select Parent */}
         {currentStep === "select-parent" && (
