@@ -1,6 +1,6 @@
 import axios, { AxiosRequestConfig } from "axios";
 
-const BASE_URL = "http://localhost:3000";
+const BASE_URL = "https://fasika-childcare-server.onrender.com";
 
 const client = axios.create({ baseURL: BASE_URL });
 
