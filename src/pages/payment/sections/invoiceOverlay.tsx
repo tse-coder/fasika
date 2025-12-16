@@ -17,7 +17,7 @@ type Html2pdfOptions = {
   margin: number | [number, number, number, number];
   filename: string;
   image: { type: "jpeg" | "png" | "webp"; quality: number };
-  html2canvas: { scale: number; useCORS: boolean };
+  html2canvas: { scale: number; useCORS: boolean ; windowWidth: number };
   jsPDF: { unit: string; format: string; orientation: "portrait" | "landscape" };
 };
 
@@ -52,10 +52,10 @@ export function InvoiceOverlay({
       }.pdf`;
 
       const opt: Html2pdfOptions = {
-        margin: [10,10,10,10],
+        margin: 0,
         filename: filename,
         image: { type: "jpeg", quality: 0.98 },
-        html2canvas: { scale: 1.5, useCORS: true },
+        html2canvas: { scale: 1, useCORS: true, windowWidth: 794 },
         jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
       };
 

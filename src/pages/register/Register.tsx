@@ -241,7 +241,7 @@ export default function RegisterSequential() {
 
   return (
     <DashboardLayout>
-      <div className="max-w-2xl mx-auto flex-1 flex  items-center justify-center flex-col">
+      <div className="max-w-2xl mx-auto">
 
         {/* Step 1: Select Parent */}
         {currentStep === "select-parent" && (

@@ -26,11 +26,11 @@ interface InvoiceTemplateProps {
 }
 
 // Utility to convert number to words (simplified placeholder)
-const numberToWords = (num: number): string => {
-  const parts = String(num).split(".");
-  const integerPart = parseInt(parts[0], 10);
-  return `Amount In Words Placeholder: ${integerPart.toLocaleString()} ETB`;
-};
+// const numberToWords = (num: number): string => {
+//   const parts = String(num).split(".");
+//   const integerPart = parseInt(parts[0], 10);
+//   return `Amount In Words Placeholder: ${integerPart.toLocaleString()} ETB`;
+// };
 
 export function InvoiceTemplate({ data }: InvoiceTemplateProps) {
   const VAT_RATE = 0.15;
@@ -113,7 +113,7 @@ export function InvoiceTemplate({ data }: InvoiceTemplateProps) {
               fontWeight: "bold",
             }}
           >
-            ፋሲካ የልጆች ማቆያ
+            ፋሲካ አለማአቀፍ የልጆች ማቆያ
           </div>
           <div
             style={{
@@ -122,10 +122,10 @@ export function InvoiceTemplate({ data }: InvoiceTemplateProps) {
               fontWeight: "bold",
             }}
           >
-            Fasika childcare
+            Fasika international childcare
           </div>
           <div style={{ fontSize: "10pt", marginBottom: "10px" }}>
-            +251 912 62 53 81 Addis Ababa Ethiopia
+            +251 912 34 56 78 Addis Ababa Ethiopia
           </div>
           <div style={{ marginBottom: "10px" }}>
             <div
@@ -153,8 +153,8 @@ export function InvoiceTemplate({ data }: InvoiceTemplateProps) {
         </div>
         <div style={{ textAlign: "right" }}>
           <div>ቀን /Date {formatDate(data.invoice_date, "yyyy-MM-dd")}</div>
-          <div style={{ marginTop: "5px", fontSize: "14pt" }}>
-            No **{data.invoice_no}**
+          <div style={{ marginTop: "5px", fontSize: "14pt", fontStyle: "italic" , color:"#333333" }}>
+            No {data.invoice_no}
           </div>
         </div>
       </div>
@@ -171,7 +171,6 @@ export function InvoiceTemplate({ data }: InvoiceTemplateProps) {
         <div
           style={{
             width: "48%",
-            border: "1px solid #000000",
             padding: "5px",
           }}
         >
@@ -222,7 +221,7 @@ export function InvoiceTemplate({ data }: InvoiceTemplateProps) {
         <div
           style={{
             width: "48%",
-            border: "1px solid #000000",
+            borderLeft: "1px solid #000000",
             padding: "5px",
           }}
         >
@@ -355,13 +354,13 @@ export function InvoiceTemplate({ data }: InvoiceTemplateProps) {
             padding: "5px",
           }}
         >
-          <TotalRow label="ጠቅላላ /Total" value={subTotal.toFixed(2)} />
-          <TotalRow label="ተ.እ.ታ /VAT (15%)" value={vatAmount.toFixed(2)} />
+          {/* <TotalRow label="ጠቅላላ /Total" value={subTotal.toFixed(2)} />
+          <TotalRow label="ተ.እ.ታ /VAT (15%)" value={vatAmount.toFixed(2)} /> */}
           <div
             style={{
               display: "flex",
               justifyContent: "space-between",
-              borderTop: "1px solid #000000",
+              // borderTop: "1px solid #000000",
               paddingTop: "5px",
               marginTop: "5px",
               backgroundColor: "#F0F0F0",
@@ -380,7 +379,7 @@ export function InvoiceTemplate({ data }: InvoiceTemplateProps) {
       </div>
 
       {/* Footer */}
-      <div style={{ borderTop: "1px solid #000000", paddingTop: "10px" }}>
+      {/* <div style={{ borderTop: "1px solid #000000", paddingTop: "10px" }}>
         <div style={{ marginBottom: "5px" }}>
           ብር በቃላት
           <br />
@@ -394,7 +393,7 @@ export function InvoiceTemplate({ data }: InvoiceTemplateProps) {
             minHeight: "20px",
           }}
         >
-          {numberToWords(totalInclVat)}
+          ብር በቃላት/Inwords :{numberToWords(totalInclVat)}
         </div>
 
         <div style={{ marginBottom: "5px" }}>
@@ -524,7 +523,7 @@ export function InvoiceTemplate({ data }: InvoiceTemplateProps) {
             2nd Copy pad
           </div>
         </div>
-      </div>
+      </div> */}
 
       {/* Bottom line */}
       <div style={{ marginTop: "20px", fontSize: "8pt", textAlign: "center" }}>

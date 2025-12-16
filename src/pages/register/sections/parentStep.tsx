@@ -116,32 +116,10 @@ export function ParentStep({
                 </div>
               ))}
 
-              {/* More button inside the list, at the end */}
-              {onNext && (
-                <div className="p-3 text-center">
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => {
-                      // ensure loader shown immediately when user clicks More
-                      setLocalLoading(true);
-                      fetchingRef.current = true;
-                      try {
-                        onNext();
-                      } catch (e) {
-                        fetchingRef.current = false;
-                        setLocalLoading(false);
-                      }
-                    }}
-                  >
-                    {isLoading || localLoading ? (
-                      <LoaderIcon className="w-4 h-4" />
-                    ) : (
-                      "More"
-                    )}
-                  </Button>
-                </div>
-              )}
+              {/* Loader */}
+              {onNext &&
+                (isLoading ||
+                  (localLoading && <LoaderIcon className="w-4 h-4" />))}
             </>
           ) : (
             <p className="text-sm text-muted-foreground p-3">
