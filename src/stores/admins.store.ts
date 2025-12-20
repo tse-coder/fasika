@@ -1,69 +1,122 @@
 import { create } from "zustand";
 import { Admin, AdminState } from "@/types/admins.types";
+import { User } from "@/types/user.types";
+import {
+  fetchUsers,
+  createUser,
+  deleteUser,
+  resetUserPassword,
+  changeUserRole,
+} from "@/api/admin.api";
+import { CreateUserRequest } from "@/types/user.types";
 
-const dummyAdmins: Admin[] = [];
+// Convert User to Admin (for backward compatibility)
+const userToAdmin = (user: User): Admin => ({
+  id: user.id,
+  name: user.name,
+  email: user.email,
+  phone: user.phone,
+  role: user.role,
+  createdAt: user.createdAt,
+  updatedAt: user.updatedAt,
+});
 
 export const useAdminsStore = create<AdminState>((set) => ({
   admins: [],
   isLoading: false,
   error: null,
 
-  fetchAdmins: async (filters: Partial<Admin> = {}) => {
+  fetchAdmins: async () => {
     set({ isLoading: true, error: null });
-
-    console.log("[Store] fetchAdmins - start", filters);
-
+    console.log("[Store] fetchAdmins - start");
     try {
-      // simulate API delay
-      await new Promise((res) => setTimeout(res, 300));
-
-      let data = dummyAdmins;
-
-      // Apply filters ONLY if provided
-      if (Object.keys(filters).length > 0) {
-        data = dummyAdmins.filter((admin) =>
-          Object.entries(filters).every(
-            ([key, value]) => admin[key as keyof Admin] === value
-          )
-        );
-      }
-
-      console.log("[Store] fetchAdmins - resolved", data);
-
-      set({ admins: data, isLoading: false });
-      return data;
+      const users = await fetchUsers();
+      const admins = users.map(userToAdmin);
+      console.log("[Store] fetchAdmins - success", admins);
+      set({ admins, isLoading: false });
+      return admins;
     } catch (err) {
       console.error("Error fetching admins:", err);
       set({ error: "Failed to load admins.", isLoading: false });
       return [];
     }
   },
-  updateAdmin: async (id: number, data: Partial<Admin>) => {
+
+  createAdmin: async (data: CreateUserRequest) => {
     set({ isLoading: true, error: null });
-    console.log("[Store] updateAdmin - start", id, data);
+    console.log("[Store] createAdmin - start", data);
     try {
-      new Promise((res) => setTimeout(res, 300));
+      const newUser = await createUser(data);
+      const newAdmin = userToAdmin(newUser);
+      set((state) => ({
+        admins: [...state.admins, newAdmin],
+        isLoading: false,
+      }));
+      console.log("[Store] createAdmin - success", newAdmin);
+      return newAdmin;
+    } catch (err) {
+      console.error("Error creating admin:", err);
+      set({ error: "Failed to create admin.", isLoading: false });
+      throw err;
+    }
+  },
 
-      const updatedAdmin = { ...data, id } as Admin;
+  deleteAdmin: async (id: string) => {
+    set({ isLoading: true, error: null });
+    console.log("[Store] deleteAdmin - start", id);
+    try {
+      await deleteUser(id);
+      set((state) => ({
+        admins: state.admins.filter((admin) => admin.id !== id),
+        isLoading: false,
+      }));
+      console.log("[Store] deleteAdmin - success");
+    } catch (err) {
+      console.error("Error deleting admin:", err);
+      set({ error: "Failed to delete admin.", isLoading: false });
+      throw err;
+    }
+  },
 
-      const index = dummyAdmins.findIndex((admin) => admin.id === id);
-      if (index !== -1) {
-        dummyAdmins[index] = { ...dummyAdmins[index], ...data };
-      }
-
-      console.log("[Store] updateAdmin - resolved", updatedAdmin);
-
+  resetPassword: async (id: string, newPassword: string) => {
+    set({ isLoading: true, error: null });
+    console.log("[Store] resetPassword - start", id);
+    try {
+      const updatedUser = await resetUserPassword(id, { newPassword });
+      const updatedAdmin = userToAdmin(updatedUser);
       set((state) => ({
         admins: state.admins.map((admin) =>
           admin.id === id ? updatedAdmin : admin
         ),
         isLoading: false,
       }));
+      console.log("[Store] resetPassword - success", updatedAdmin);
       return updatedAdmin;
     } catch (err) {
-      console.error("Error updating admin:", err);
-      set({ error: "Failed to update admin.", isLoading: false });
-      return null;
+      console.error("Error resetting password:", err);
+      set({ error: "Failed to reset password.", isLoading: false });
+      throw err;
+    }
+  },
+
+  changeRole: async (id: string, action: "PROMOTE" | "DEMOTE") => {
+    set({ isLoading: true, error: null });
+    console.log("[Store] changeRole - start", id, action);
+    try {
+      const updatedUser = await changeUserRole(id, { action });
+      const updatedAdmin = userToAdmin(updatedUser);
+      set((state) => ({
+        admins: state.admins.map((admin) =>
+          admin.id === id ? updatedAdmin : admin
+        ),
+        isLoading: false,
+      }));
+      console.log("[Store] changeRole - success", updatedAdmin);
+      return updatedAdmin;
+    } catch (err) {
+      console.error("Error changing role:", err);
+      set({ error: "Failed to change role.", isLoading: false });
+      throw err;
     }
   },
 }));

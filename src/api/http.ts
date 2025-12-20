@@ -1,6 +1,6 @@
 import axios, { AxiosRequestConfig } from "axios";
 // base url with vite_env
-const BASE_URL = import.meta.env.VITE_API_BASE_URL || "https://fasika-childcare-server.onrender.com";
+const BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 const client = axios.create({ baseURL: BASE_URL });
 
@@ -17,7 +17,7 @@ export const setAuthToken = (token: string | null) => {
 // Request logging
 client.interceptors.request.use((config) => {
   try {
-    const { method, url, params, data } = config;
+    const { method, url, params, data, headers } = config;
     console.log(`[API] Request -> ${method?.toUpperCase()} ${url}`, {
       params: params ?? undefined,
       body: data ?? undefined,
@@ -86,6 +86,14 @@ export const apiPut = async <T>(
   body: Record<string, any>
 ): Promise<T> => {
   const res = await client.put<T>(url, body);
+  return res.data;
+};
+
+export const apiPatch = async <T>(
+  url: string,
+  body: Record<string, any>
+): Promise<T> => {
+  const res = await client.patch<T>(url, body);
   return res.data;
 };
 

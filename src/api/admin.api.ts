@@ -1,50 +1,92 @@
-import { Admin } from "@/types/admins.types";
+import {
+  User,
+  CreateUserRequest,
+  ResetPasswordRequest,
+  ChangeRoleRequest,
+} from "@/types/user.types";
+import { apiGet, apiPost, apiPatch } from "./http";
 
-
-export const createAdmin = async (username: string, password: string, role: 'superadmin' | 'admin') => {
-    const response = await fetch('/api/admins', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ username, password, role }),
-    });
-
-    if (!response.ok) {
-        throw new Error('Failed to create admin');
-    }
-
-    const data = await response.json();
-    return data as Admin;
+/**
+ * Fetch all users (requires ADMIN role)
+ */
+export const fetchUsers = async (): Promise<User[]> => {
+  console.log("[API] fetchUsers - start");
+  try {
+    const res = await apiGet<User[]>("/api/users");
+    console.log("[API] fetchUsers - success", res);
+    return res;
+  } catch (err) {
+    console.error("[API] fetchUsers - error", err);
+    throw err;
+  }
 };
 
-export const fetchAdmins = async (): Promise<Admin[]> => {
-    const responst = await fetch('/api/admins', {
-        method: 'GET',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-    });
+/**
+ * Create a new user (requires ADMIN role)
+ * Note: New users are created with role "USER" by default
+ */
+export const createUser = async (data: CreateUserRequest): Promise<User> => {
+  console.log("[API] createUser - start", data);
+  try {
+    const res = await apiPost<User>("/api/users", data);
+    console.log("[API] createUser - success", res);
+    return res;
+  } catch (err) {
+    console.error("[API] createUser - error", err);
+    throw err;
+  }
+};
 
-    if (!responst.ok) {
-        throw new Error('Failed to fetch admins');
-    }
+/**
+ * Soft delete a user (requires ADMIN role)
+ * PATCH /users/:id/delete
+ */
+export const deleteUser = async (id: string): Promise<User> => {
+  console.log("[API] deleteUser - start", id);
+  try {
+    const res = await apiPatch<User>(`/api/users/${id}/delete`, {});
+    console.log("[API] deleteUser - success", res);
+    return res;
+  } catch (err) {
+    console.error("[API] deleteUser - error", err);
+    throw err;
+  }
+};
 
-    const data = await responst.json();
-    return data as Admin[];
-}
+/**
+ * Reset a user's password (requires ADMIN role)
+ * PATCH /users/:id/reset-password
+ */
+export const resetUserPassword = async (
+  id: string,
+  data: ResetPasswordRequest
+): Promise<User> => {
+  console.log("[API] resetUserPassword - start", id);
+  try {
+    const res = await apiPatch<User>(`/api/users/${id}/reset-password`, data);
+    console.log("[API] resetUserPassword - success", res);
+    return res;
+  } catch (err) {
+    console.error("[API] resetUserPassword - error", err);
+    throw err;
+  }
+};
 
-export const deleteAdmin = async (id: number) => {
-    const response = await fetch(`/api/admins/${id}`, {
-        method: 'DELETE',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-    });
-
-    if (!response.ok) {
-        throw new Error('Failed to delete admin');
-    }
-
-    return true;
-}
+/**
+ * Change user role (PROMOTE to ADMIN or DEMOTE to USER)
+ * PATCH /users/:id/role
+ */
+export const changeUserRole = async (
+  id: string,
+  data: ChangeRoleRequest
+): Promise<User> => {
+  console.log("[API] changeUserRole - start", id, data);
+  try {
+    const res = await apiPatch<User>(`/api/users/${id}/role`, data);
+    console.log("[API] changeUserRole - success", res);
+    return res;
+  } catch (err) {
+    console.error("[API] changeUserRole - error", err);
+    throw err;
+  }
+};
