@@ -7,7 +7,7 @@ import { useToast } from "@/hooks/use-toast";
  * Custom hook to handle login functionality
  */
 export const useLogin = () => {
-  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const { login, isAuthenticated } = useAuth();
@@ -26,7 +26,7 @@ export const useLogin = () => {
     setIsLoading(true);
 
     try {
-      const success = await login(username, password);
+      const success = await login(email, password);
       if (success) {
         toast({
           title: "Login Successful",
@@ -36,14 +36,18 @@ export const useLogin = () => {
       } else {
         toast({
           title: "Login Failed",
-          description: "Invalid username or password.",
+          description: "Invalid email or password.",
           variant: "destructive",
         });
       }
-    } catch (error) {
+    } catch (error: any) {
+      const errorMessage =
+        error?.response?.data?.message ||
+        error?.message ||
+        "An error occurred during login. Please try again.";
       toast({
         title: "Error",
-        description: "An error occurred during login. Please try again.",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
@@ -52,10 +56,10 @@ export const useLogin = () => {
   };
 
   return {
-    username,
+    email,
     password,
     isLoading,
-    setUsername,
+    setEmail,
     setPassword,
     handleSubmit,
   };

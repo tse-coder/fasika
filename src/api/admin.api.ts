@@ -1,92 +1,92 @@
-import { Admin } from "@/types/admins.types";
-import { apiGet, apiPost, apiDelete, apiPut } from "./http";
-
-export interface CreateAdminRequest {
-  username: string;
-  password: string;
-  role: "superadmin" | "admin";
-}
+import {
+  User,
+  CreateUserRequest,
+  ResetPasswordRequest,
+  ChangeRoleRequest,
+} from "@/types/user.types";
+import { apiGet, apiPost, apiPatch } from "./http";
 
 /**
- * Create a new admin user
+ * Fetch all users (requires ADMIN role)
  */
-export const createAdmin = async (data: CreateAdminRequest): Promise<Admin> => {
-  console.log("[API] createAdmin - start", data);
+export const fetchUsers = async (): Promise<User[]> => {
+  console.log("[API] fetchUsers - start");
   try {
-    const res = await apiPost<Admin>("/api/users", data,{
-      headers: {
-        "authentication": "Bearer" 
-      }
-    });
-    console.log("[API] createAdmin - success", res);
+    const res = await apiGet<User[]>("/api/users");
+    console.log("[API] fetchUsers - success", res);
     return res;
   } catch (err) {
-    console.error("[API] createAdmin - error", err);
+    console.error("[API] fetchUsers - error", err);
     throw err;
   }
 };
 
 /**
- * Fetch all admins
+ * Create a new user (requires ADMIN role)
+ * Note: New users are created with role "USER" by default
  */
-export const fetchAdmins = async (): Promise<Admin[]> => {
-  console.log("[API] fetchAdmins - start");
+export const createUser = async (data: CreateUserRequest): Promise<User> => {
+  console.log("[API] createUser - start", data);
   try {
-    const res = await apiGet<Admin[]>("/api/users");
-    console.log("[API] fetchAdmins - success", res);
+    const res = await apiPost<User>("/api/users", data);
+    console.log("[API] createUser - success", res);
     return res;
   } catch (err) {
-    console.error("[API] fetchAdmins - error", err);
+    console.error("[API] createUser - error", err);
     throw err;
   }
 };
 
 /**
- * Delete an admin by ID
+ * Soft delete a user (requires ADMIN role)
+ * PATCH /users/:id/delete
  */
-export const deleteAdmin = async (id: number): Promise<void> => {
-  console.log("[API] deleteAdmin - start", id);
+export const deleteUser = async (id: string): Promise<User> => {
+  console.log("[API] deleteUser - start", id);
   try {
-    await apiDelete(`/api/users/${id}`);
-    console.log("[API] deleteAdmin - success");
+    const res = await apiPatch<User>(`/api/users/${id}/delete`, {});
+    console.log("[API] deleteUser - success", res);
+    return res;
   } catch (err) {
-    console.error("[API] deleteAdmin - error", err);
+    console.error("[API] deleteUser - error", err);
     throw err;
   }
 };
 
 /**
- * Update an admin (username and/or password)
+ * Reset a user's password (requires ADMIN role)
+ * PATCH /users/:id/reset-password
  */
-export const updateAdmin = async (
-  id: number,
-  data: { username?: string; password?: string }
-): Promise<Admin> => {
-  console.log("[API] updateAdmin - start", id, data);
+export const resetUserPassword = async (
+  id: string,
+  data: ResetPasswordRequest
+): Promise<User> => {
+  console.log("[API] resetUserPassword - start", id);
   try {
-    const res = await apiPut<Admin>(`/api/admins/${id}`, data);
-    console.log("[API] updateAdmin - success", res);
+    const res = await apiPatch<User>(`/api/users/${id}/reset-password`, data);
+    console.log("[API] resetUserPassword - success", res);
     return res;
   } catch (err) {
-    console.error("[API] updateAdmin - error", err);
+    console.error("[API] resetUserPassword - error", err);
     throw err;
   }
 };
 
 /**
- * Update current user's profile (username and/or password)
+ * Change user role (PROMOTE to ADMIN or DEMOTE to USER)
+ * PATCH /users/:id/role
  */
-export const updateCurrentUser = async (data: {
-  username?: string;
-  password?: string;
-}): Promise<{ username: string }> => {
-  console.log("[API] updateCurrentUser - start", data);
+export const changeUserRole = async (
+  id: string,
+  data: ChangeRoleRequest
+): Promise<User> => {
+  console.log("[API] changeUserRole - start", id, data);
   try {
-    const res = await apiPut<{ username: string }>("/api/auth/profile", data);
-    console.log("[API] updateCurrentUser - success", res);
+    const res = await apiPatch<User>(`/api/users/${id}/role`, data);
+    console.log("[API] changeUserRole - success", res);
     return res;
   } catch (err) {
-    console.error("[API] updateCurrentUser - error", err);
+    console.error("[API] changeUserRole - error", err);
     throw err;
   }
 };

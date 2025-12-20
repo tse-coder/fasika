@@ -10,19 +10,17 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { LoaderIcon } from "@/components/ui/skeleton-card";
+import { CreateUserRequest } from "@/types/user.types";
 
 interface AdminCreationFormProps {
-  onSubmit: (data: {
-    username: string;
-    password: string;
-    role: "superadmin" | "admin";
-  }) => Promise<void>;
+  onSubmit: (data: CreateUserRequest & { makeAdmin: boolean }) => Promise<void>;
   onCancel: () => void;
   isLoading?: boolean;
 }
 
 /**
- * Form component for creating a new admin user
+ * Form component for creating a new user
+ * Users are created as USER by default, then promoted to ADMIN if selected
  */
 export const AdminCreationForm = ({
   onSubmit,
@@ -30,9 +28,11 @@ export const AdminCreationForm = ({
   isLoading = false,
 }: AdminCreationFormProps) => {
   const [formData, setFormData] = useState({
-    username: "",
+    name: "",
+    email: "",
+    phone: "",
     password: "",
-    role: "admin" as "superadmin" | "admin",
+    makeAdmin: false,
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -40,14 +40,24 @@ export const AdminCreationForm = ({
     e.preventDefault();
     const newErrors: Record<string, string> = {};
 
-    if (!formData.username.trim()) {
-      newErrors.username = "Username is required";
+    if (!formData.name.trim()) {
+      newErrors.name = "Name is required";
+    }
+
+    if (!formData.email.trim()) {
+      newErrors.email = "Email is required";
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      newErrors.email = "Invalid email format";
+    }
+
+    if (!formData.phone.trim()) {
+      newErrors.phone = "Phone is required";
     }
 
     if (!formData.password.trim()) {
       newErrors.password = "Password is required";
-    } else if (formData.password.length < 6) {
-      newErrors.password = "Password must be at least 6 characters";
+    } else if (formData.password.length < 8) {
+      newErrors.password = "Password must be at least 8 characters";
     }
 
     if (Object.keys(newErrors).length > 0) {
@@ -56,25 +66,61 @@ export const AdminCreationForm = ({
     }
 
     setErrors({});
-    await onSubmit(formData);
+    const submitData: CreateUserRequest & { makeAdmin: boolean } = {
+      name: formData.name.trim(),
+      email: formData.email.trim(),
+      phone: formData.phone.trim(),
+      password: formData.password,
+      makeAdmin: formData.makeAdmin,
+    };
+
+    await onSubmit(submitData);
   };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="space-y-2">
-        <Label htmlFor="username">Username</Label>
+        <Label htmlFor="name">Full Name</Label>
         <Input
-          id="username"
+          id="name"
           type="text"
-          value={formData.username}
-          onChange={(e) =>
-            setFormData({ ...formData, username: e.target.value })
-          }
+          value={formData.name}
+          onChange={(e) => setFormData({ ...formData, name: e.target.value })}
           disabled={isLoading}
           required
         />
-        {errors.username && (
-          <p className="text-sm text-destructive">{errors.username}</p>
+        {errors.name && (
+          <p className="text-sm text-destructive">{errors.name}</p>
+        )}
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="email">Email</Label>
+        <Input
+          id="email"
+          type="email"
+          value={formData.email}
+          onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+          disabled={isLoading}
+          required
+        />
+        {errors.email && (
+          <p className="text-sm text-destructive">{errors.email}</p>
+        )}
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="phone">Phone</Label>
+        <Input
+          id="phone"
+          type="tel"
+          value={formData.phone}
+          onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+          disabled={isLoading}
+          required
+        />
+        {errors.phone && (
+          <p className="text-sm text-destructive">{errors.phone}</p>
         )}
       </div>
 
@@ -89,27 +135,31 @@ export const AdminCreationForm = ({
           }
           disabled={isLoading}
           required
+          minLength={8}
         />
         {errors.password && (
           <p className="text-sm text-destructive">{errors.password}</p>
         )}
+        <p className="text-xs text-muted-foreground">
+          Password must be at least 8 characters
+        </p>
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="role">Role</Label>
+        <Label htmlFor="makeAdmin">Grant Admin Privileges</Label>
         <Select
-          value={formData.role}
-          onValueChange={(value: "superadmin" | "admin") =>
-            setFormData({ ...formData, role: value })
+          value={formData.makeAdmin ? "yes" : "no"}
+          onValueChange={(value) =>
+            setFormData({ ...formData, makeAdmin: value === "yes" })
           }
           disabled={isLoading}
         >
-          <SelectTrigger id="role">
-            <SelectValue placeholder="Select role" />
+          <SelectTrigger id="makeAdmin">
+            <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="admin">Admin</SelectItem>
-            <SelectItem value="superadmin">Super Admin</SelectItem>
+            <SelectItem value="no">Regular Admin</SelectItem>
+            <SelectItem value="yes">SuperAdmin</SelectItem>
           </SelectContent>
         </Select>
       </div>

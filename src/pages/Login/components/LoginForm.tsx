@@ -9,10 +9,10 @@ import {
 import { LoaderIcon } from "@/components/ui/skeleton-card";
 
 interface LoginFormProps {
-  username: string;
+  email: string;
   password: string;
   isLoading: boolean;
-  onUsernameChange: (value: string) => void;
+  onEmailChange: (value: string) => void;
   onPasswordChange: (value: string) => void;
   onSubmit: (e: React.FormEvent) => void;
 }
@@ -21,10 +21,10 @@ interface LoginFormProps {
  * Login form component
  */
 export const LoginForm = ({
-  username,
+  email,
   password,
   isLoading,
-  onUsernameChange,
+  onEmailChange,
   onPasswordChange,
   onSubmit,
 }: LoginFormProps) => {
@@ -39,18 +39,18 @@ export const LoginForm = ({
       <CardContent>
         <form onSubmit={onSubmit} className="space-y-4">
           <div className="space-y-2">
-            <label htmlFor="username" className="text-sm font-medium">
-              Username
+            <label htmlFor="email" className="text-sm font-medium">
+              Email
             </label>
             <Input
-              id="username"
-              type="text"
-              placeholder="Enter your username"
-              value={username}
-              onChange={(e) => onUsernameChange(e.target.value)}
+              id="email"
+              type="email"
+              placeholder="Enter your email"
+              value={email}
+              onChange={(e) => onEmailChange(e.target.value)}
               required
               disabled={isLoading}
-              autoComplete="username"
+              autoComplete="email"
             />
           </div>
           <div className="space-y-2">
@@ -79,12 +79,7 @@ export const LoginForm = ({
             )}
           </Button>
           <div className="text-center text-sm text-muted-foreground mt-4">
-            <p>Demo Credentials:</p>
-            <p className="font-mono text-xs mt-1">
-              Username: admin
-              <br />
-              Password: admin123
-            </p>
+            <p>Enter your credentials to continue</p>
           </div>
         </form>
       </CardContent>

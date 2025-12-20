@@ -1,54 +1,15 @@
-import { useState } from "react";
-import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/stores/auth.store";
-import { updateCurrentUser } from "@/api/admin.api";
 
 /**
- * Custom hook to handle user profile updates
+ * Custom hook to get user profile information
+ * Note: Profile updates require admin privileges via the users management page
  */
 export const useUserProfile = () => {
-  const { toast } = useToast();
-  const { user, updateUser } = useAuth();
-  const [isUpdating, setIsUpdating] = useState(false);
-
-  const handleUpdate = async (data: {
-    username?: string;
-    password?: string;
-  }) => {
-    setIsUpdating(true);
-    try {
-      const response = await updateCurrentUser(data);
-
-      // Update local user state
-      if (data.username) {
-        updateUser({ username: data.username });
-      }
-
-      toast({
-        title: "Profile Updated",
-        description: "Your profile has been updated successfully.",
-      });
-
-      return true;
-    } catch (err: any) {
-      const errorMessage =
-        err?.response?.data?.message ||
-        err?.message ||
-        "Failed to update profile.";
-      toast({
-        title: "Error",
-        description: errorMessage,
-        variant: "destructive",
-      });
-      return false;
-    } finally {
-      setIsUpdating(false);
-    }
-  };
+  const { user } = useAuth();
 
   return {
-    handleUpdate,
-    isUpdating,
-    username: user?.username || "",
+    name: user?.name || user?.email?.split("@")[0] || "User",
+    email: user?.email || "",
+    role: user?.role || "USER",
   };
 };

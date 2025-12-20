@@ -6,7 +6,7 @@ import { LoaderIcon } from "@/components/ui/skeleton-card";
 
 interface AdminRowProps {
   admin: Admin;
-  onDelete: (id: number) => void;
+  onDelete: (id: string) => void;
   isDeleting: boolean;
   canDelete: boolean;
 }
@@ -21,6 +21,7 @@ export const AdminRow = ({
   canDelete,
 }: AdminRowProps) => {
   const canDeleteThisAdmin = canDelete;
+  const isCurrentlyDeleting = isDeleting;
 
   return (
     <tr className="border-b border-border/50 hover:bg-muted/30 transition-colors">
@@ -28,19 +29,22 @@ export const AdminRow = ({
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
             <span className="text-primary text-sm font-medium">
-              {admin.username[0]?.toUpperCase() || "A"}
+              {admin.name[0]?.toUpperCase() || "A"}
             </span>
           </div>
-          <span className="font-medium">{admin.username}</span>
+          <div>
+            <span className="font-medium">{admin.name}</span>
+            <p className="text-xs text-muted-foreground">{admin.email}</p>
+          </div>
         </div>
       </td>
       <td className="py-4 px-4">
-        <Badge variant={admin.role === "superadmin" ? "default" : "secondary"}>
-          {admin.role === "superadmin" ? "Super Admin" : "Admin"}
+        <Badge variant={admin.role === "ADMIN" ? "default" : "secondary"}>
+          {admin.role === "ADMIN" ? "Admin" : "User"}
         </Badge>
       </td>
       <td className="py-4 px-4 text-muted-foreground text-sm">
-        {new Date(admin.created_at).toLocaleDateString()}
+        {new Date(admin.createdAt).toLocaleDateString()}
       </td>
       <td className="py-4 px-4">
         {canDeleteThisAdmin && (
@@ -48,9 +52,9 @@ export const AdminRow = ({
             variant="ghost"
             size="sm"
             onClick={() => onDelete(admin.id)}
-            disabled={isDeleting}
+            disabled={isCurrentlyDeleting}
           >
-            {isDeleting ? (
+            {isCurrentlyDeleting ? (
               <LoaderIcon className="w-4 h-4" />
             ) : (
               <Trash2 className="w-4 h-4 text-destructive" />

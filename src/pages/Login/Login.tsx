@@ -5,22 +5,16 @@ import { LoginForm } from "./components/LoginForm";
  * Login page component
  */
 const Login = () => {
-  const {
-    username,
-    password,
-    isLoading,
-    setUsername,
-    setPassword,
-    handleSubmit,
-  } = useLogin();
+  const { email, password, isLoading, setEmail, setPassword, handleSubmit } =
+    useLogin();
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <LoginForm
-        username={username}
+        email={email}
         password={password}
         isLoading={isLoading}
-        onUsernameChange={setUsername}
+        onEmailChange={setEmail}
         onPasswordChange={setPassword}
         onSubmit={handleSubmit}
       />

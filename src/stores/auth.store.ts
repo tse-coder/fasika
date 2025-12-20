@@ -1,56 +1,97 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-
-// Hardcoded demo credentials
-const DEMO_CREDENTIALS = {
-  username: "admin",
-  password: "admin123",
-};
+import { login as loginAPI } from "@/api/auth.api";
+import { setAuthToken } from "@/api/http";
 
 interface AuthState {
   isAuthenticated: boolean;
-  user: { username: string; role?: "superadmin" | "admin" } | null;
-  login: (username: string, password: string) => Promise<boolean>;
+  token: string | null;
+  user: {
+    id: string;
+    email: string;
+    name: string;
+    role: "ADMIN" | "USER";
+  } | null;
+  login: (email: string, password: string) => Promise<boolean>;
   logout: () => void;
   checkAuth: () => boolean;
-  updateUser: (data: { username?: string }) => void;
+  updateUser: (data: { name?: string; email?: string }) => void;
 }
+
+// Decode JWT token to get user info (simple base64 decode, not verifying signature)
+const decodeToken = (
+  token: string
+): { sub: string; role: "ADMIN" | "USER" } | null => {
+  try {
+    const payload = token.split(".")[1];
+    const decoded = JSON.parse(atob(payload));
+    return { sub: decoded.sub, role: decoded.role };
+  } catch (e) {
+    console.error("Error decoding token:", e);
+    return null;
+  }
+};
 
 export const useAuth = create<AuthState>()(
   persist(
     (set, get) => ({
       isAuthenticated: false,
+      token: null,
       user: null,
 
-      login: async (username: string, password: string) => {
-        // Simulate API call delay
-        await new Promise((resolve) => setTimeout(resolve, 500));
+      login: async (email: string, password: string) => {
+        try {
+          const response = await loginAPI({ email, password });
+          const token = response.access_token;
 
-        if (
-          username === DEMO_CREDENTIALS.username &&
-          password === DEMO_CREDENTIALS.password
-        ) {
+          // Decode token to get user info
+          const decoded = decodeToken(token);
+          if (!decoded) {
+            return false;
+          }
+
+          // Set token in axios headers
+          setAuthToken(token);
+
+          // For now, we'll use email as name until we can fetch full user profile
+          // In a real app, you might want to fetch user details after login
           set({
             isAuthenticated: true,
-            user: { username },
+            token,
+            user: {
+              id: decoded.sub,
+              email,
+              name: email.split("@")[0], // Temporary: use email prefix as name
+              role: decoded.role,
+            },
           });
           return true;
+        } catch (err: any) {
+          console.error("Login error:", err);
+          return false;
         }
-        return false;
       },
 
       logout: () => {
+        setAuthToken(null);
         set({
           isAuthenticated: false,
+          token: null,
           user: null,
         });
       },
 
       checkAuth: () => {
-        return get().isAuthenticated;
+        const state = get();
+        if (state.token && state.isAuthenticated) {
+          // Set token in axios headers in case it was lost
+          setAuthToken(state.token);
+          return true;
+        }
+        return false;
       },
 
-      updateUser: (data: { username?: string }) => {
+      updateUser: (data: { name?: string; email?: string }) => {
         const currentUser = get().user;
         if (currentUser) {
           set({
@@ -61,6 +102,23 @@ export const useAuth = create<AuthState>()(
     }),
     {
       name: "auth-storage",
+      // Persist token and user, and derive isAuthenticated from them
+      partialize: (state) => ({
+        token: state.token,
+        user: state.user,
+      }),
+      onRehydrateStorage: () => (state) => {
+        // Restore auth state on rehydrate
+        if (state?.token && state?.user) {
+          setAuthToken(state.token);
+          state.isAuthenticated = true;
+        } else {
+          setAuthToken(null);
+          state.isAuthenticated = false;
+          state.user = null;
+          state.token = null;
+        }
+      },
     }
   )
 );

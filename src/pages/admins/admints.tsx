@@ -7,8 +7,6 @@ import { useAuth } from "@/stores/auth.store";
 import { AdminsHeader } from "./components/AdminsHeader";
 import { AdminsList } from "./components/AdminsList";
 import { AdminCreationForm } from "./components/AdminCreationForm";
-import { X } from "lucide-react";
-import { Button } from "@/components/ui/button";
 
 /**
  * Main Admins page component
@@ -31,33 +29,25 @@ function Admins() {
   const handleAddAdmin = () => {
     setShowCreateForm(true);
     openModal(
-      <div className="p-6 max-w-md w-full">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-semibold">Create New Admin</h2>
-          <Button variant="ghost" size="icon" onClick={closeModal}>
-            <X className="w-4 h-4" />
-          </Button>
-        </div>
-        <AdminCreationForm
-          onSubmit={async (data) => {
-            const success = await handleCreateAdmin(data);
-            if (success) {
-              refetch();
-              closeModal();
-              setShowCreateForm(false);
-            }
-          }}
-          onCancel={() => {
+      <AdminCreationForm
+        onSubmit={async (data) => {
+          const success = await handleCreateAdmin(data);
+          if (success) {
+            refetch();
             closeModal();
             setShowCreateForm(false);
-          }}
-          isLoading={isCreating}
-        />
-      </div>
+          }
+        }}
+        onCancel={() => {
+          closeModal();
+          setShowCreateForm(false);
+        }}
+        isLoading={isCreating}
+      />
     );
   };
 
-  const handleDelete = async (id: number) => {
+  const handleDelete = async (id: string) => {
     await handleDeleteAdmin(id);
     refetch();
   };
@@ -71,7 +61,7 @@ function Admins() {
           isLoading={isLoading}
           error={error}
           onDelete={handleDelete}
-          isDeleting={typeof isDeleting === "number"}
+          isDeleting={isDeleting !== null}
           canDelete={isSuperAdmin}
         />
       </div>

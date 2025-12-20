@@ -7,7 +7,7 @@ interface AdminsListProps {
   admins: Admin[];
   isLoading: boolean;
   error: string | null;
-  onDelete: (id: number) => void;
+  onDelete: (id: string) => void;
   isDeleting: boolean;
   canDelete: boolean;
 }
@@ -51,7 +51,7 @@ export const AdminsList = ({
           <thead>
             <tr className="border-b border-border">
               <th className="text-left py-4 px-4 font-semibold text-foreground">
-                Username
+                User
               </th>
               <th className="text-left py-4 px-4 font-semibold text-foreground">
                 Role

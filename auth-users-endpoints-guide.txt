@@ -1,0 +1,719 @@
+================================================================================
+AUTHENTICATION & USERS API ENDPOINTS - FRONTEND DEVELOPER GUIDE
+================================================================================
+
+================================================================================
+AUTHENTICATION ENDPOINTS
+================================================================================
+
+Base URL: /auth
+
+================================================================================
+1. LOGIN
+================================================================================
+
+Endpoint: POST /auth/login
+
+Description: Authenticates a user and returns a JWT access token.
+
+PATH PARAMETERS:
+- None
+
+QUERY PARAMETERS:
+- None
+
+REQUEST BODY:
+{
+  email: string,        // Required - User's email address
+  password: string      // Required - User's password (minimum 8 characters)
+}
+
+REQUEST BODY ATTRIBUTES DETAILS:
+- email
+  - Type: string
+  - Required: Yes
+  - Validation: Must be a valid email format
+  - Example: "admin@example.com"
+
+- password
+  - Type: string
+  - Required: Yes
+  - Validation: Minimum length of 8 characters
+  - Description: User's password (will be compared with hashed password in database)
+
+Example Request:
+{
+  "email": "admin@example.com",
+  "password": "password123"
+}
+
+RESPONSE BODY (Success - 200):
+{
+  access_token: string    // JWT token for authentication
+}
+
+Example Response:
+{
+  "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwicm9sZSI6IkFETUlOIiwiaWF0IjoxNTE2MjM5MDIyfQ..."
+}
+
+JWT TOKEN DETAILS:
+- Token Type: Bearer Token
+- Expiration: 1 day (24 hours)
+- Token Format: Include in Authorization header as: "Bearer {access_token}"
+- Token Payload Contains:
+  - sub: User ID (string UUID)
+  - role: User role ("ADMIN" or "USER")
+  - iat: Issued at timestamp
+  - exp: Expiration timestamp
+
+ERROR RESPONSES:
+- 401 Unauthorized: "Invalid credentials"
+  - Returned when:
+    - Email doesn't exist in database
+    - Password doesn't match
+- 403 Forbidden: "User is deleted"
+  - Returned when user account has been soft-deleted
+
+================================================================================
+AUTHENTICATION REQUIREMENTS
+================================================================================
+
+All user management endpoints require authentication using JWT Bearer tokens.
+
+HOW TO USE JWT TOKEN:
+1. After successful login, store the access_token from the response
+2. Include the token in all subsequent requests to protected endpoints
+3. Add to HTTP headers as:
+   Authorization: Bearer {access_token}
+
+Example Header:
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+
+TOKEN EXPIRATION:
+- Tokens expire after 1 day (24 hours)
+- When token expires, user must login again to get a new token
+- Expired tokens will result in 401 Unauthorized responses
+
+================================================================================
+USERS ENDPOINTS
+================================================================================
+
+Base URL: /users
+
+IMPORTANT: All user endpoints require:
+1. JWT Authentication (Bearer token in Authorization header)
+2. ADMIN role (only ADMIN users can access these endpoints)
+
+================================================================================
+1. GET ALL USERS
+================================================================================
+
+Endpoint: GET /users
+
+Description: Retrieves a list of all active (non-deleted) users. Only accessible by ADMIN role.
+
+PATH PARAMETERS:
+- None
+
+QUERY PARAMETERS:
+- None
+
+REQUEST BODY:
+- None
+
+AUTHENTICATION:
+- Required: Yes
+- Header: Authorization: Bearer {access_token}
+- Required Role: ADMIN
+
+RESPONSE BODY (Success - 200):
+Array of user objects:
+[
+  {
+    id: string,              // User ID (UUID)
+    name: string,            // User's full name
+    email: string,           // User's email address
+    role: string,            // User role ("ADMIN" or "USER")
+    createdAt: string,       // Creation timestamp (ISO 8601 datetime)
+    updatedAt: string        // Last update timestamp (ISO 8601 datetime)
+  },
+  ...
+]
+
+Example Response:
+[
+  {
+    "id": "123e4567-e89b-12d3-a456-426614174000",
+    "name": "John Doe",
+    "email": "john@example.com",
+    "role": "ADMIN",
+    "createdAt": "2024-01-15T10:30:00.000Z",
+    "updatedAt": "2024-01-15T10:30:00.000Z"
+  },
+  {
+    "id": "223e4567-e89b-12d3-a456-426614174001",
+    "name": "Jane Smith",
+    "email": "jane@example.com",
+    "role": "USER",
+    "createdAt": "2024-01-16T09:20:00.000Z",
+    "updatedAt": "2024-01-16T09:20:00.000Z"
+  }
+]
+
+Note: Only non-deleted users (isDeleted = false) are returned. Deleted users are excluded from the results.
+
+ERROR RESPONSES:
+- 401 Unauthorized: 
+  - Missing or invalid JWT token
+  - Token expired
+- 403 Forbidden: 
+  - User doesn't have ADMIN role
+  - User account is deleted
+
+================================================================================
+2. CREATE USER
+================================================================================
+
+Endpoint: POST /users
+
+Description: Creates a new user account. Only accessible by ADMIN role.
+
+PATH PARAMETERS:
+- None
+
+QUERY PARAMETERS:
+- None
+
+REQUEST BODY:
+{
+  name: string,           // Required - User's full name
+  email: string,          // Required - User's email address (must be unique)
+  phone: string,          // Required - User's phone number (must be unique)
+  dob?: string,           // Optional - Date of birth (ISO 8601 date format)
+  password: string         // Required - User's password (minimum 8 characters)
+}
+
+REQUEST BODY ATTRIBUTES DETAILS:
+- name
+  - Type: string
+  - Required: Yes
+  - Validation: Must be a non-empty string
+
+- email
+  - Type: string
+  - Required: Yes
+  - Validation: Must be a valid email format and unique in database
+  - Example: "user@example.com"
+
+- phone
+  - Type: string
+  - Required: Yes
+  - Validation: Must be unique in database
+  - Example: "+1234567890"
+
+- dob (Date of Birth)
+  - Type: string (ISO 8601 date format) or Date object
+  - Required: No (optional)
+  - Format: YYYY-MM-DD or ISO 8601 datetime
+  - Example: "1990-05-15" or "1990-05-15T00:00:00.000Z"
+
+- password
+  - Type: string
+  - Required: Yes
+  - Validation: Minimum length of 8 characters
+  - Note: Password will be automatically hashed before storage
+
+Example Request:
+{
+  "name": "Alice Johnson",
+  "email": "alice@example.com",
+  "phone": "+1234567890",
+  "dob": "1990-05-15",
+  "password": "securepass123"
+}
+
+AUTHENTICATION:
+- Required: Yes
+- Header: Authorization: Bearer {access_token}
+- Required Role: ADMIN
+
+RESPONSE BODY (Success - 201):
+{
+  id: string,              // User ID (UUID, auto-generated)
+  name: string,            // User's full name
+  email: string,           // User's email address
+  phone: string | null,    // User's phone number (can be null)
+  dob: string | null,     // Date of birth (ISO 8601 datetime, can be null)
+  password: string,        // Hashed password (stored in database, but returned in response)
+  role: string,           // User role (default: "USER")
+  isDeleted: boolean,     // Deletion status (default: false)
+  deletedAt: string | null, // Deletion timestamp (null if not deleted)
+  createdAt: string,      // Creation timestamp (ISO 8601 datetime)
+  updatedAt: string       // Last update timestamp (ISO 8601 datetime)
+}
+
+Example Response:
+{
+  "id": "323e4567-e89b-12d3-a456-426614174002",
+  "name": "Alice Johnson",
+  "email": "alice@example.com",
+  "phone": "+1234567890",
+  "dob": "1990-05-15T00:00:00.000Z",
+  "password": "$2b$10$hashedpassword...",
+  "role": "USER",
+  "isDeleted": false,
+  "deletedAt": null,
+  "createdAt": "2024-01-17T14:30:00.000Z",
+  "updatedAt": "2024-01-17T14:30:00.000Z"
+}
+
+Note: 
+- New users are created with role "USER" by default
+- Password is automatically hashed using bcrypt before storage
+- Email and phone must be unique (cannot duplicate existing users)
+
+ERROR RESPONSES:
+- 400 Bad Request: Validation errors (invalid email format, password too short, etc.)
+- 401 Unauthorized: Missing or invalid JWT token
+- 403 Forbidden: User doesn't have ADMIN role
+- 409 Conflict: "Email or phone already exists"
+  - Returned when trying to create a user with an email or phone that already exists
+
+================================================================================
+3. SOFT DELETE USER
+================================================================================
+
+Endpoint: PATCH /users/:id/delete
+
+Description: Soft deletes a user account (marks as deleted but doesn't remove from database). Only accessible by ADMIN role.
+
+PATH PARAMETERS:
+- id (required, string)
+  - Type: string (UUID)
+  - Description: The ID of the user to delete
+  - Example: "123e4567-e89b-12d3-a456-426614174000"
+
+QUERY PARAMETERS:
+- None
+
+REQUEST BODY:
+- None
+
+AUTHENTICATION:
+- Required: Yes
+- Header: Authorization: Bearer {access_token}
+- Required Role: ADMIN
+
+RESPONSE BODY (Success - 200):
+{
+  id: string,              // User ID
+  name: string,            // User's full name
+  email: string,           // User's email address
+  phone: string | null,    // User's phone number
+  dob: string | null,      // Date of birth
+  password: string,        // Hashed password
+  role: string,           // User role
+  isDeleted: boolean,     // Deletion status (now true)
+  deletedAt: string,      // Deletion timestamp (ISO 8601 datetime)
+  createdAt: string,      // Creation timestamp
+  updatedAt: string       // Last update timestamp
+}
+
+Example Response:
+{
+  "id": "123e4567-e89b-12d3-a456-426614174000",
+  "name": "John Doe",
+  "email": "john@example.com",
+  "phone": "+1234567890",
+  "dob": null,
+  "password": "$2b$10$hashedpassword...",
+  "role": "USER",
+  "isDeleted": true,
+  "deletedAt": "2024-01-17T15:00:00.000Z",
+  "createdAt": "2024-01-15T10:30:00.000Z",
+  "updatedAt": "2024-01-17T15:00:00.000Z"
+}
+
+Note:
+- Soft delete means the user is marked as deleted but not removed from database
+- Deleted users cannot login (authentication will fail)
+- Deleted users are excluded from GET /users results
+- Admin cannot delete itself (will return 403 Forbidden)
+
+ERROR RESPONSES:
+- 401 Unauthorized: Missing or invalid JWT token
+- 403 Forbidden: 
+  - User doesn't have ADMIN role
+  - "Admin cannot delete itself" (when trying to delete own account)
+- 404 Not Found: "User not found"
+  - Returned when user ID doesn't exist or user is already deleted
+
+================================================================================
+4. RESET USER PASSWORD (by Admin)
+================================================================================
+
+Endpoint: PATCH /users/:id/reset-password
+
+Description: Allows an admin to reset another user's password. Only accessible by ADMIN role.
+
+PATH PARAMETERS:
+- id (required, string)
+  - Type: string (UUID)
+  - Description: The ID of the user whose password will be reset
+  - Example: "123e4567-e89b-12d3-a456-426614174000"
+
+QUERY PARAMETERS:
+- None
+
+REQUEST BODY:
+{
+  newPassword: string      // Required - New password for the user (minimum 8 characters)
+}
+
+REQUEST BODY ATTRIBUTES DETAILS:
+- newPassword
+  - Type: string
+  - Required: Yes
+  - Validation: Minimum length of 8 characters
+  - Note: Password will be automatically hashed before storage
+
+Example Request:
+{
+  "newPassword": "newsecurepass123"
+}
+
+AUTHENTICATION:
+- Required: Yes
+- Header: Authorization: Bearer {access_token}
+- Required Role: ADMIN
+
+RESPONSE BODY (Success - 200):
+{
+  id: string,              // User ID
+  name: string,            // User's full name
+  email: string,           // User's email address
+  phone: string | null,    // User's phone number
+  dob: string | null,      // Date of birth
+  password: string,        // New hashed password
+  role: string,           // User role
+  isDeleted: boolean,     // Deletion status
+  deletedAt: string | null, // Deletion timestamp
+  createdAt: string,      // Creation timestamp
+  updatedAt: string       // Last update timestamp
+}
+
+Example Response:
+{
+  "id": "123e4567-e89b-12d3-a456-426614174000",
+  "name": "John Doe",
+  "email": "john@example.com",
+  "phone": "+1234567890",
+  "dob": null,
+  "password": "$2b$10$newhashedpassword...",
+  "role": "USER",
+  "isDeleted": false,
+  "deletedAt": null,
+  "createdAt": "2024-01-15T10:30:00.000Z",
+  "updatedAt": "2024-01-17T16:00:00.000Z"
+}
+
+Note:
+- Admin cannot reset its own password (will return 403 Forbidden)
+- Password is automatically hashed using bcrypt before storage
+- User will need to use the new password for future logins
+
+ERROR RESPONSES:
+- 400 Bad Request: "newPassword must be longer than or equal to 8 characters"
+- 401 Unauthorized: Missing or invalid JWT token
+- 403 Forbidden: 
+  - User doesn't have ADMIN role
+  - "Admin cannot reset its own password" (when trying to reset own password)
+- 404 Not Found: "User not found"
+  - Returned when user ID doesn't exist
+
+================================================================================
+5. CHANGE USER ROLE
+================================================================================
+
+Endpoint: PATCH /users/:id/role
+
+Description: Promotes a user to ADMIN or demotes an ADMIN to USER. Only accessible by ADMIN role.
+
+PATH PARAMETERS:
+- id (required, string)
+  - Type: string (UUID)
+  - Description: The ID of the user whose role will be changed
+  - Example: "123e4567-e89b-12d3-a456-426614174000"
+
+QUERY PARAMETERS:
+- None
+
+REQUEST BODY:
+{
+  action: string          // Required - Either "PROMOTE" or "DEMOTE"
+}
+
+REQUEST BODY ATTRIBUTES DETAILS:
+- action
+  - Type: string (enum)
+  - Required: Yes
+  - Valid Values: "PROMOTE" or "DEMOTE"
+  - Description: 
+    - "PROMOTE": Changes user role from "USER" to "ADMIN"
+    - "DEMOTE": Changes user role from "ADMIN" to "USER"
+
+Example Request:
+{
+  "action": "PROMOTE"
+}
+
+or
+
+{
+  "action": "DEMOTE"
+}
+
+AUTHENTICATION:
+- Required: Yes
+- Header: Authorization: Bearer {access_token}
+- Required Role: ADMIN
+
+RESPONSE BODY (Success - 200):
+{
+  id: string,              // User ID
+  name: string,            // User's full name
+  email: string,           // User's email address
+  phone: string | null,    // User's phone number
+  dob: string | null,      // Date of birth
+  password: string,        // Hashed password
+  role: string,           // Updated user role ("ADMIN" or "USER")
+  isDeleted: boolean,     // Deletion status
+  deletedAt: string | null, // Deletion timestamp
+  createdAt: string,      // Creation timestamp
+  updatedAt: string       // Last update timestamp
+}
+
+Example Response (PROMOTE):
+{
+  "id": "123e4567-e89b-12d3-a456-426614174000",
+  "name": "John Doe",
+  "email": "john@example.com",
+  "phone": "+1234567890",
+  "dob": null,
+  "password": "$2b$10$hashedpassword...",
+  "role": "ADMIN",
+  "isDeleted": false,
+  "deletedAt": null,
+  "createdAt": "2024-01-15T10:30:00.000Z",
+  "updatedAt": "2024-01-17T17:00:00.000Z"
+}
+
+Example Response (DEMOTE):
+{
+  "id": "223e4567-e89b-12d3-a456-426614174001",
+  "name": "Jane Smith",
+  "email": "jane@example.com",
+  "phone": "+1234567891",
+  "dob": null,
+  "password": "$2b$10$hashedpassword...",
+  "role": "USER",
+  "isDeleted": false,
+  "deletedAt": null,
+  "createdAt": "2024-01-16T09:20:00.000Z",
+  "updatedAt": "2024-01-17T17:00:00.000Z"
+}
+
+Note:
+- Admin cannot change its own role (will return error)
+- PROMOTE action sets role to "ADMIN"
+- DEMOTE action sets role to "USER"
+- Role change takes effect immediately
+
+ERROR RESPONSES:
+- 400 Bad Request: 
+  - Invalid action value (must be "PROMOTE" or "DEMOTE")
+  - "Admin cannot change its own role" (when trying to change own role)
+- 401 Unauthorized: Missing or invalid JWT token
+- 403 Forbidden: User doesn't have ADMIN role
+- 404 Not Found: User not found (if user ID doesn't exist)
+
+================================================================================
+DATA TYPES REFERENCE
+================================================================================
+
+User Roles:
+- "ADMIN": Administrator with full access to all endpoints
+- "USER": Regular user with limited access
+
+UUID Format:
+- User IDs are UUIDs (Universally Unique Identifiers)
+- Format: "123e4567-e89b-12d3-a456-426614174000"
+- Example: "550e8400-e29b-41d4-a716-446655440000"
+
+Date/DateTime Fields:
+- createdAt: DateTime (ISO 8601 format)
+- updatedAt: DateTime (ISO 8601 format)
+- deletedAt: DateTime (ISO 8601 format, can be null)
+- dob: DateTime (ISO 8601 format, can be null)
+
+String Fields:
+- name: String - User's full name
+- email: String - Email address (unique, must be valid email format)
+- phone: String - Phone number (unique, can be null)
+- password: String - Hashed password (bcrypt hash)
+
+Boolean Fields:
+- isDeleted: Boolean - Soft deletion flag (default: false)
+
+================================================================================
+AUTHENTICATION FLOW
+================================================================================
+
+1. USER LOGIN:
+   - POST /auth/login with email and password
+   - Receive access_token in response
+   - Store token securely (e.g., localStorage, sessionStorage, or secure cookie)
+
+2. MAKING AUTHENTICATED REQUESTS:
+   - Include token in Authorization header: "Bearer {access_token}"
+   - Token is valid for 24 hours
+   - All /users endpoints require ADMIN role
+
+3. TOKEN EXPIRATION:
+   - After 24 hours, token expires
+   - User must login again to get a new token
+   - Expired tokens return 401 Unauthorized
+
+4. ROLE-BASED ACCESS:
+   - ADMIN role: Can access all /users endpoints
+   - USER role: Cannot access /users endpoints (will receive 403 Forbidden)
+
+================================================================================
+IMPORTANT NOTES FOR FRONTEND DEVELOPERS
+================================================================================
+
+1. AUTHENTICATION:
+   - Always include JWT token in Authorization header for protected endpoints
+   - Format: "Authorization: Bearer {access_token}"
+   - Token expires after 1 day - implement token refresh or re-login flow
+
+2. ROLE-BASED ACCESS:
+   - All /users endpoints require ADMIN role
+   - Check user role before showing/hiding UI elements
+   - Handle 403 Forbidden errors gracefully
+
+3. ERROR HANDLING:
+   - 401 Unauthorized: Token missing, invalid, or expired - redirect to login
+   - 403 Forbidden: User doesn't have required role - show appropriate message
+   - 404 Not Found: Resource doesn't exist - show error message
+   - 409 Conflict: Email/phone already exists - show validation error
+
+4. PASSWORD SECURITY:
+   - Never store passwords in plain text
+   - Passwords are automatically hashed on the backend
+   - Minimum password length: 8 characters
+   - Consider implementing password strength requirements on frontend
+
+5. SOFT DELETE:
+   - Deleted users cannot login
+   - Deleted users are excluded from user lists
+   - Consider showing deleted users separately if needed for admin purposes
+
+6. USER ID FORMAT:
+   - User IDs are UUIDs (string format)
+   - Always send as string, not number
+   - Example: "123e4567-e89b-12d3-a456-426614174000"
+
+7. DATE FORMATS:
+   - All dates are in ISO 8601 format
+   - Example: "2024-01-15T10:30:00.000Z"
+   - Date of birth (dob) can be sent as date string: "1990-05-15"
+
+8. VALIDATION:
+   - Email must be valid email format
+   - Password minimum 8 characters
+   - Email and phone must be unique
+   - All required fields must be provided
+
+9. ADMIN RESTRICTIONS:
+   - Admin cannot delete itself
+   - Admin cannot reset its own password
+   - Admin cannot change its own role
+   - These restrictions prevent accidental lockout
+
+10. REQUEST HEADERS:
+    - Always include Content-Type: application/json for POST/PATCH requests
+    - Always include Authorization: Bearer {token} for protected endpoints
+
+================================================================================
+EXAMPLE FRONTEND INTEGRATION CODE SNIPPETS
+================================================================================
+
+LOGIN EXAMPLE (JavaScript/TypeScript):
+--------------------------------------
+async function login(email, password) {
+  const response = await fetch('/auth/login', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ email, password }),
+  });
+  
+  if (!response.ok) {
+    throw new Error('Login failed');
+  }
+  
+  const data = await response.json();
+  localStorage.setItem('access_token', data.access_token);
+  return data;
+}
+
+GET ALL USERS EXAMPLE:
+----------------------
+async function getAllUsers() {
+  const token = localStorage.getItem('access_token');
+  const response = await fetch('/users', {
+    method: 'GET',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+    },
+  });
+  
+  if (!response.ok) {
+    if (response.status === 401) {
+      // Token expired, redirect to login
+      window.location.href = '/login';
+    }
+    throw new Error('Failed to fetch users');
+  }
+  
+  return await response.json();
+}
+
+CREATE USER EXAMPLE:
+--------------------
+async function createUser(userData) {
+  const token = localStorage.getItem('access_token');
+  const response = await fetch('/users', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`,
+    },
+    body: JSON.stringify(userData),
+  });
+  
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || 'Failed to create user');
+  }
+  
+  return await response.json();
+}
+
+================================================================================
+END OF DOCUMENTATION
+================================================================================
+

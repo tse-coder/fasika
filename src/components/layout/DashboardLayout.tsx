@@ -39,7 +39,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const openModal = useModalStore((state) => state.openModal);
   const closeModal = useModalStore((state) => state.closeModal);
-  const { handleUpdate, isUpdating, username } = useUserProfile();
+  const { name, email, role } = useUserProfile();
 
   const handleLogout = () => {
     logout();
@@ -49,10 +49,10 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
   const handleUserClick = () => {
     openModal(
       <UserInfoOverlay
-        username={username}
-        onUpdate={handleUpdate}
+        name={name}
+        email={email}
+        role={role}
         onClose={closeModal}
-        isLoading={isUpdating}
       />
     );
   };
@@ -84,6 +84,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
           <nav className="flex-1 pr-4 space-y-1">
             {navItems.map((item) => {
               const isActive = location.pathname === item.path;
+              if (role === "USER" && item.path === "/admins") return null
               return (
                 <Link
                   key={item.path}
@@ -114,10 +115,10 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
                 <User className="w-4 h-4" />
                 <div className="flex-1 text-left">
                   <p className="text-sm font-medium text-sidebar-foreground">
-                    {user?.username || "Admin"}
+                    {user?.name || user?.email || "User"}
                   </p>
                   <p className="text-xs text-sidebar-foreground/60">
-                    {user?.role === "superadmin" ? "Super Admin" : "Admin"}
+                    {user?.role === "ADMIN" ? "Admin" : "User"}
                   </p>
                 </div>
               </div>

@@ -1,12 +1,25 @@
 import { create } from "zustand";
 import { Admin, AdminState } from "@/types/admins.types";
+import { User } from "@/types/user.types";
 import {
-  fetchAdmins,
-  createAdmin,
-  deleteAdmin,
-  updateAdmin,
+  fetchUsers,
+  createUser,
+  deleteUser,
+  resetUserPassword,
+  changeUserRole,
 } from "@/api/admin.api";
-import { CreateAdminRequest } from "@/api/admin.api";
+import { CreateUserRequest } from "@/types/user.types";
+
+// Convert User to Admin (for backward compatibility)
+const userToAdmin = (user: User): Admin => ({
+  id: user.id,
+  name: user.name,
+  email: user.email,
+  phone: user.phone,
+  role: user.role,
+  createdAt: user.createdAt,
+  updatedAt: user.updatedAt,
+});
 
 export const useAdminsStore = create<AdminState>((set) => ({
   admins: [],
@@ -17,10 +30,11 @@ export const useAdminsStore = create<AdminState>((set) => ({
     set({ isLoading: true, error: null });
     console.log("[Store] fetchAdmins - start");
     try {
-      const data = await fetchAdmins();
-      console.log("[Store] fetchAdmins - success", data);
-      set({ admins: data, isLoading: false });
-      return data;
+      const users = await fetchUsers();
+      const admins = users.map(userToAdmin);
+      console.log("[Store] fetchAdmins - success", admins);
+      set({ admins, isLoading: false });
+      return admins;
     } catch (err) {
       console.error("Error fetching admins:", err);
       set({ error: "Failed to load admins.", isLoading: false });
@@ -28,11 +42,12 @@ export const useAdminsStore = create<AdminState>((set) => ({
     }
   },
 
-  createAdmin: async (data: CreateAdminRequest) => {
+  createAdmin: async (data: CreateUserRequest) => {
     set({ isLoading: true, error: null });
     console.log("[Store] createAdmin - start", data);
     try {
-      const newAdmin = await createAdmin(data);
+      const newUser = await createUser(data);
+      const newAdmin = userToAdmin(newUser);
       set((state) => ({
         admins: [...state.admins, newAdmin],
         isLoading: false,
@@ -46,11 +61,11 @@ export const useAdminsStore = create<AdminState>((set) => ({
     }
   },
 
-  deleteAdmin: async (id: number) => {
+  deleteAdmin: async (id: string) => {
     set({ isLoading: true, error: null });
     console.log("[Store] deleteAdmin - start", id);
     try {
-      await deleteAdmin(id);
+      await deleteUser(id);
       set((state) => ({
         admins: state.admins.filter((admin) => admin.id !== id),
         isLoading: false,
@@ -63,25 +78,44 @@ export const useAdminsStore = create<AdminState>((set) => ({
     }
   },
 
-  updateAdmin: async (
-    id: number,
-    data: { username?: string; password?: string }
-  ) => {
+  resetPassword: async (id: string, newPassword: string) => {
     set({ isLoading: true, error: null });
-    console.log("[Store] updateAdmin - start", id, data);
+    console.log("[Store] resetPassword - start", id);
     try {
-      const updatedAdmin = await updateAdmin(id, data);
+      const updatedUser = await resetUserPassword(id, { newPassword });
+      const updatedAdmin = userToAdmin(updatedUser);
       set((state) => ({
         admins: state.admins.map((admin) =>
           admin.id === id ? updatedAdmin : admin
         ),
         isLoading: false,
       }));
-      console.log("[Store] updateAdmin - success", updatedAdmin);
+      console.log("[Store] resetPassword - success", updatedAdmin);
       return updatedAdmin;
     } catch (err) {
-      console.error("Error updating admin:", err);
-      set({ error: "Failed to update admin.", isLoading: false });
+      console.error("Error resetting password:", err);
+      set({ error: "Failed to reset password.", isLoading: false });
+      throw err;
+    }
+  },
+
+  changeRole: async (id: string, action: "PROMOTE" | "DEMOTE") => {
+    set({ isLoading: true, error: null });
+    console.log("[Store] changeRole - start", id, action);
+    try {
+      const updatedUser = await changeUserRole(id, { action });
+      const updatedAdmin = userToAdmin(updatedUser);
+      set((state) => ({
+        admins: state.admins.map((admin) =>
+          admin.id === id ? updatedAdmin : admin
+        ),
+        isLoading: false,
+      }));
+      console.log("[Store] changeRole - success", updatedAdmin);
+      return updatedAdmin;
+    } catch (err) {
+      console.error("Error changing role:", err);
+      set({ error: "Failed to change role.", isLoading: false });
       throw err;
     }
   },
