@@ -17,7 +17,7 @@ export const setAuthToken = (token: string | null) => {
 // Request logging
 client.interceptors.request.use((config) => {
   try {
-    const { method, url, params, data } = config;
+    const { method, url, params, data, headers } = config;
     console.log(`[API] Request -> ${method?.toUpperCase()} ${url}`, {
       params: params ?? undefined,
       body: data ?? undefined,
@@ -75,9 +75,10 @@ export const apiGet = async <T>(
 
 export const apiPost = async <T>(
   url: string,
-  body: Record<string, any>
+  body: Record<string, any>,
+  headers: Record<string, Record<string, string>> = {}
 ): Promise<T> => {
-  const res = await client.post<T>(url, body);
+  const res = await client.post<T>(url, body, { headers: { ...headers, "content-type": "application/json" } });
   return res.data;
 };
 

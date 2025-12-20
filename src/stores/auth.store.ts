@@ -9,10 +9,11 @@ const DEMO_CREDENTIALS = {
 
 interface AuthState {
   isAuthenticated: boolean;
-  user: { username: string } | null;
+  user: { username: string; role?: "superadmin" | "admin" } | null;
   login: (username: string, password: string) => Promise<boolean>;
   logout: () => void;
   checkAuth: () => boolean;
+  updateUser: (data: { username?: string }) => void;
 }
 
 export const useAuth = create<AuthState>()(
@@ -47,6 +48,15 @@ export const useAuth = create<AuthState>()(
 
       checkAuth: () => {
         return get().isAuthenticated;
+      },
+
+      updateUser: (data: { username?: string }) => {
+        const currentUser = get().user;
+        if (currentUser) {
+          set({
+            user: { ...currentUser, ...data },
+          });
+        }
       },
     }),
     {

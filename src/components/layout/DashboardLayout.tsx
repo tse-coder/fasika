@@ -10,10 +10,14 @@ import {
   LogOut,
   AlertTriangle,
   UsersIcon,
+  User,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/stores/auth.store";
+import { useModalStore } from "@/stores/overlay.store";
 import { Button } from "@/components/ui/button";
+import { UserInfoOverlay } from "@/components/user/UserInfoOverlay";
+import { useUserProfile } from "@/hooks/useUserProfile";
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -33,10 +37,24 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
   const navigate = useNavigate();
   const { logout, user } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const openModal = useModalStore((state) => state.openModal);
+  const closeModal = useModalStore((state) => state.closeModal);
+  const { handleUpdate, isUpdating, username } = useUserProfile();
 
   const handleLogout = () => {
     logout();
     navigate("/login");
+  };
+
+  const handleUserClick = () => {
+    openModal(
+      <UserInfoOverlay
+        username={username}
+        onUpdate={handleUpdate}
+        onClose={closeModal}
+        isLoading={isUpdating}
+      />
+    );
   };
 
   return (
@@ -87,19 +105,23 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
 
           {/* Footer */}
           <div className="p-4 border-t border-sidebar-border space-y-2">
-            <div className="flex items-center gap-3 px-4 py-3 text-sidebar-foreground/60">
-              <div className="w-8 h-8 rounded-full bg-sidebar-accent flex items-center justify-center">
-                <span className="text-sm font-medium text-sidebar-accent-foreground">
-                  {user?.username?.[0]?.toUpperCase() || "A"}
-                </span>
+            <Button
+              variant="ghost"
+              className="w-full justify-start text-sidebar-foreground/80 hover:text-sidebar-foreground hover:bg-sidebar-accent"
+              onClick={handleUserClick}
+            >
+              <div className="flex items-center gap-3 w-full">
+                <User className="w-4 h-4" />
+                <div className="flex-1 text-left">
+                  <p className="text-sm font-medium text-sidebar-foreground">
+                    {user?.username || "Admin"}
+                  </p>
+                  <p className="text-xs text-sidebar-foreground/60">
+                    {user?.role === "superadmin" ? "Super Admin" : "Admin"}
+                  </p>
+                </div>
               </div>
-              <div className="flex-1">
-                <p className="text-sm font-medium text-sidebar-foreground">
-                  {user?.username || "Admin"}
-                </p>
-                <p className="text-xs text-sidebar-foreground/60">Manager</p>
-              </div>
-            </div>
+            </Button>
             <Button
               variant="ghost"
               className="w-full justify-start text-sidebar-foreground/80 hover:text-sidebar-foreground hover:bg-sidebar-accent"
