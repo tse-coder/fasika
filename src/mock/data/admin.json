@@ -1,0 +1,28 @@
+[
+  {
+    "id": "1",
+    "email": "admin@example.com",
+    "name": "Admin",
+    "role": "ADMIN",
+    "password": "adminpassword",
+    "dob": null,
+    "phone": null,
+    "isDeleted": false,
+    "deletedAt":null,
+    "createdAt": null,
+    "updatedAt": null
+  },
+  {
+    "id": "2",
+    "email": "user@example.com",
+    "name": "User",
+    "role": "USER",
+    "password": "userpassword",
+    "dob": null,
+    "phone": null,
+    "isDeleted": false,
+    "deletedAt":null,
+    "createdAt": null,
+    "updatedAt": null
+  }
+]

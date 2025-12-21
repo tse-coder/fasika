@@ -1,4 +1,4 @@
-import { ChildParentLink } from "./api.types";
+import { Branch, ChildParentLink } from "./api.types";
 
 export interface Child {
   id: number;
@@ -9,6 +9,8 @@ export interface Child {
   is_active: boolean;
   monthlyFee?: number;
   parents: ChildParentLink[];
+  branch: Branch;
+  registerationYear: number;
 }
 export interface ChildQuery {
   query?: string;

@@ -10,3 +10,5 @@ export interface ChildParentLink {
   relationship: string;    // "father", "mother", etc
   isPrimary: boolean;
 }
+
+export type Branch = "bulbula" | "semit" | "hayat" | "megenagna";

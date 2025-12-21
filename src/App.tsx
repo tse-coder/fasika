@@ -13,6 +13,7 @@ import NotFound from "./pages/NotFound";
 import { OverlayModal } from "./components/overlay";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import Admins from "./pages/admins/admints";
+import PaymentInfo from "./pages/payment-info/paymentInfo";
 
 const queryClient = new QueryClient();
 
@@ -70,6 +71,14 @@ const App = () => (
             element={
               <ProtectedRoute>
                 <Admins />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/payment-info"
+            element={
+              <ProtectedRoute>
+                <PaymentInfo />
               </ProtectedRoute>
             }
           />

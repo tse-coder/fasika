@@ -11,6 +11,7 @@ import {
   AlertTriangle,
   UsersIcon,
   User,
+  LayoutDashboardIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/stores/auth.store";
@@ -30,6 +31,7 @@ const navItems = [
   { path: "/payments", icon: CreditCard, label: "Payments" },
   { path: "/late-payments", icon: AlertTriangle, label: "Unpaid" },
   { path: "/admins", icon: UsersIcon, label: "Admins" },
+  { path: "/payment-info", icon: LayoutDashboardIcon, label: "Payment Info" },
 ];
 
 export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
@@ -84,7 +86,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
           <nav className="flex-1 pr-4 space-y-1">
             {navItems.map((item) => {
               const isActive = location.pathname === item.path;
-              if (role === "USER" && item.path === "/admins") return null
+              if (role === "USER" && item.path in ["/admins", "/payment-info"]) return null
               return (
                 <Link
                   key={item.path}
