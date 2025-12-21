@@ -1,7 +1,8 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import { login as loginAPI } from "@/api/auth.api";
+// import { login as loginAPI } from "@/api/auth.api";
 import { setAuthToken } from "@/api/http";
+import { login } from "@/mock/auth.mock";
 
 interface AuthState {
   isAuthenticated: boolean;
@@ -23,7 +24,7 @@ const decodeToken = (
   token: string
 ): { sub: string; role: "ADMIN" | "USER" } | null => {
   try {
-    const payload = token.split(".")[1];
+    const payload = token.split(".")[2];// index will be changed to 1 later for the real api
     const decoded = JSON.parse(atob(payload));
     return { sub: decoded.sub, role: decoded.role };
   } catch (e) {
@@ -41,14 +42,15 @@ export const useAuth = create<AuthState>()(
 
       login: async (email: string, password: string) => {
         try {
-          const response = await loginAPI({ email, password });
+          const response = await login({ email, password });
+          
           const token = response.access_token;
 
           // Decode token to get user info
-          const decoded = decodeToken(token);
-          if (!decoded) {
-            return false;
-          }
+          // const decoded = decodeToken(token); 
+          // if (!decoded) { 
+          //   return false;
+          // }
 
           // Set token in axios headers
           setAuthToken(token);
@@ -59,10 +61,10 @@ export const useAuth = create<AuthState>()(
             isAuthenticated: true,
             token,
             user: {
-              id: decoded.sub,
+              id: response.sub,
               email,
-              name: email.split("@")[0], // Temporary: use email prefix as name
-              role: decoded.role,
+              name: response.name, // Temporary: use email prefix as name
+              role: response.role,
             },
           });
           return true;

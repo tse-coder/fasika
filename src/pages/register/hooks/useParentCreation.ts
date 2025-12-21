@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useParents } from "@/stores/parent.store";
-import { registerParent } from "@/api/parent.api";
 import { Parent } from "@/types/parent.types";
+import { registerParent } from "@/mock/parent.mock";
 
 /**
  * Custom hook to handle parent creation

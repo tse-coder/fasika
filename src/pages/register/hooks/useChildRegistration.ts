@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useChildren } from "@/stores/children.store";
-import { createChild } from "@/api/child.api";
 import { Parent } from "@/types/parent.types";
+import { createChild } from "@/mock/child.mock";
 
 export interface ChildFormData {
   firstName: string;

@@ -1,12 +1,12 @@
 import { useState, useEffect } from "react";
 import { useChildren } from "@/stores/children.store";
-import { fetchPaidMonths } from "@/api/payment.api";
 import { useToast } from "@/hooks/use-toast";
 import {
   getMonthsFromJanuaryToNow,
   calculateMonthsLate,
   matchesLateRange,
 } from "../utils/latePaymentsUtils";
+import { fetchPaidMonths } from "@/mock/payment.mock";
 
 export interface LatePaymentChild {
   id: number;

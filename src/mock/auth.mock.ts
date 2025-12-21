@@ -43,5 +43,9 @@ export const login = async (
 
   return {
     access_token: token,
+    name: user.name,
+    email: user.email,
+    sub: user.sub,
+    role: user.role
   };
 };

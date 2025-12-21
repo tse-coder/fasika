@@ -1,13 +1,7 @@
 import { create } from "zustand";
 import { Admin, AdminState } from "@/types/admins.types";
 import { User } from "@/types/user.types";
-import {
-  fetchUsers,
-  createUser,
-  deleteUser,
-  resetUserPassword,
-  changeUserRole,
-} from "@/api/admin.api";
+import { changeUserRole, createUser, deleteUser, fetchUsers, resetUserPassword } from "@/mock/admin.mock";
 import { CreateUserRequest } from "@/types/user.types";
 
 // Convert User to Admin (for backward compatibility)

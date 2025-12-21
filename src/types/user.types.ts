@@ -1,3 +1,5 @@
+import { Branch } from "./api.types";
+
 /**
  * User type matching the API response format
  */
@@ -8,6 +10,7 @@ export type User = {
   phone: string | null;
   dob: string | null; // ISO 8601 date
   role: "ADMIN" | "USER";
+  branch?: Branch;
   isDeleted: boolean;
   deletedAt: string | null;
   createdAt: string; // ISO 8601 datetime

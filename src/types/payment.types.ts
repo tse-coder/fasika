@@ -1,3 +1,4 @@
+export type PaymentType = "registeration" | "monthly" | "quarterly";
 export interface Payment {
   id: number;
   child_id: number;

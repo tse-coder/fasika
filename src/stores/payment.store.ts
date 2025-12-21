@@ -7,12 +7,8 @@ import {
   CreatePaymentResponse,
   PaymentsPaginated,
 } from "@/types/payment.types";
-import {
-  fetchPayments,
-  fetchPaidMonths,
-  createPayment,
-  deletePayment as deletePaymentApi,
-} from "@/api/payment.api";
+import { createPayment, deletePayment, fetchPaidMonths, fetchPayments } from "@/mock/payment.mock";
+
 
 export const usePayments = create<PaymentState>((set, get) => ({
   payments: [],
@@ -96,7 +92,7 @@ export const usePayments = create<PaymentState>((set, get) => ({
   deletePayment: async (id: number) => {
     set({ isLoading: true, error: null });
     try {
-      await deletePaymentApi(id);
+      await deletePayment(id);
       const currentPayments = get().payments;
       set({
         payments: currentPayments.filter((p) => p.id !== id),

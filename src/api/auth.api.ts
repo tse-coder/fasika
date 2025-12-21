@@ -7,6 +7,10 @@ export interface LoginRequest {
 
 export interface LoginResponse {
   access_token: string;
+  name: string;
+  email: string;
+  sub: string;
+  role: "ADMIN" | "USER";
 }
 
 /**

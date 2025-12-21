@@ -30,7 +30,7 @@ export const createChild = async (
   const newChild: Child = {
     ...child,
     id: Math.max(0, ...children.map(c => c.id)) + 1,
-    monthlyFee: 0,
+    monthlyFee: 1000,
     parents: child.parents ?? [],
   };
 
