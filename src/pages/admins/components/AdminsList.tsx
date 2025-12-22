@@ -12,7 +12,7 @@ interface AdminsListProps {
   canDelete: boolean;
   onEdit: (id: string) => void;
   canEdit: boolean;
-  isEditing: boolean
+  isEditing: string
 }
 
 /**

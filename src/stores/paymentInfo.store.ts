@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import { mockGetPaymentInfo, mockUpdatePaymentInfo } from "@/mock/api";
+import { getPaymentInfo, updatePaymentInfo } from "@/mock/api";
 import { PaymentInfoData } from "@/mock/data";
 
 interface PaymentInfoState {
@@ -20,7 +20,7 @@ export const usePaymentInfoStore = create<PaymentInfoState>()(
       load: async () => {
         set({ isLoading: true, error: null });
         try {
-          const info = await mockGetPaymentInfo();
+          const info = await getPaymentInfo();
           set({ data: info, isLoading: false });
           return info;
         } catch (err: any) {
@@ -34,7 +34,7 @@ export const usePaymentInfoStore = create<PaymentInfoState>()(
       save: async (data: PaymentInfoData) => {
         set({ isLoading: true, error: null });
         try {
-          const saved = await mockUpdatePaymentInfo(data);
+          const saved = await updatePaymentInfo(data);
           set({ data: saved, isLoading: false });
           return saved;
         } catch (err: any) {

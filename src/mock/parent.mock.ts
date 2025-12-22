@@ -1,76 +1,78 @@
-import raw from "./data/parents.json";
-import { Parent, ParentQuery } from "@/types/parent.types";
+import { Parent } from "@/types/parent.types";
 import { PaginatedResponse } from "@/types/api.types";
-import { delay, paginate } from "./utils";
+import { mockParents } from "./data";
+import { delay } from "./utils";
 
-const parents: Parent[] = structuredClone(raw as Parent[]);
+let parents: Parent[] = [...mockParents];
 
+const nextId = (() => {
+  let current = 4000;
+  return () => ++current;
+})();
+
+/**
+ * Pagination helper (matches your PaginatedResponse)
+ */
+const paginate = <T>(
+  data: T[],
+  page = 1,
+  limit = 10
+): PaginatedResponse<T> => ({
+  data: data.slice((page - 1) * limit, page * limit),
+  total: data.length,
+  page,
+  limit,
+});
+
+/**
+ * Fetch parents (filters + pagination)
+ */
 export const fetchParents = async (
-  params: ParentQuery = {}
+  params: Record<string, any> = {}
 ): Promise<PaginatedResponse<Parent>> => {
   await delay();
-
-  let filtered = [...parents];
-
-  if (params.query) {
-    const q = params.query.toLowerCase();
-    filtered = filtered.filter(
-      p => p.fname.toLowerCase().includes(q) || p.lname.toLowerCase().includes(q)
-    );
-  }
-
-  if (params.gender) {
-    filtered = filtered.filter(p => p.gender === params.gender);
-  }
-
-  if (params.email) {
-    filtered = filtered.filter(p => p.email === params.email);
-  }
-
-  if (params.phone_number) {
-    filtered = filtered.filter(p => p.phone_number === params.phone_number);
-  }
-
+  const query = (params.query || "").toLowerCase();
+  const filtered = parents.filter((p) =>
+    `${p.fname} ${p.lname} ${p.phone_number}`.toLowerCase().includes(query)
+  );
   return paginate(filtered, params.page, params.limit);
 };
 
-export const fetchParentById = async (id: number): Promise<Parent> => {
+/**
+ * Fetch parent by ID
+ */
+export const fetchParentById = async (id: number): Promise<Parent | null> => {
   await delay();
-  const parent = parents.find(p => p.id === id);
-  if (!parent) throw new Error("Parent not found");
+  return parents.find((p) => p.id === id) || null;
+};
+
+/**
+ * Register parent
+ */
+export const registerParent = async (
+  data: Omit<Parent, "id" | "created_at" | "updated_at">
+): Promise<Parent> => {
+  await delay();
+  const parent: Parent = {
+    ...data,
+    id: nextId(),
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  };
+  parents = [...parents, parent];
   return parent;
 };
 
-export const registerParent = async (
-  parent: Omit<Parent, "id" | "created_at" | "updated_at">
-): Promise<Parent> => {
-  await delay();
-
-  const now = new Date().toISOString();
-  const newParent: Parent = {
-    ...parent,
-    id: Math.max(0, ...parents.map(p => p.id)) + 1,
-    created_at: now,
-    updated_at: now,
-  };
-
-  parents.push(newParent);
-  return newParent;
-};
-
+/**
+ * Update parent
+ */
 export const updateParent = async (
   id: number,
   updates: Partial<Parent>
 ): Promise<Parent> => {
   await delay();
-  const index = parents.findIndex(p => p.id === id);
-  if (index === -1) throw new Error("Parent not found");
-
-  parents[index] = {
-    ...parents[index],
-    ...updates,
-    updated_at: new Date().toISOString(),
-  };
-
-  return parents[index];
+  const idx = parents.findIndex((p) => p.id === id);
+  if (idx === -1) throw new Error("Parent not found");
+  parents[idx] = { ...parents[idx], ...updates, updated_at: new Date().toISOString() };
+  return parents[idx];
 };

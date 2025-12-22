@@ -1,13 +1,15 @@
 import { useState } from "react";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
-import { useAdmins } from "./hooks/useAdmins";
+import { Admin } from "@/types/admins.types";
 import { useAdminActions } from "./hooks/useAdminActions";
 import { useModalStore } from "@/stores/overlay.store";
 import { useAuth } from "@/stores/auth.store";
 import { AdminsHeader } from "./components/AdminsHeader";
 import { AdminsList } from "./components/AdminsList";
-import { AdminCreationForm } from "./components/AdminCreationForm";
+import { AdminEditOverlay } from "./components/AdminEditOverlay";
 import { Navigate } from "react-router-dom";
+import { useAdmins } from "./hooks/useAdmins";
+import { AdminCreationForm } from "./components/AdminCreationForm";
 
 /**
  * Main Admins page component
@@ -28,6 +30,7 @@ function Admins() {
   const openModal = useModalStore((state) => state.openModal);
   const closeModal = useModalStore((state) => state.closeModal);
   const [showCreateForm, setShowCreateForm] = useState(false);
+  const [editingAdmin, setEditingAdmin] = useState<Admin | null>(null);
 
   if (user?.role !== "ADMIN") {
     return <Navigate to="/payments" replace />;
@@ -59,6 +62,32 @@ function Admins() {
     refetch();
   };
 
+  const handleEditAdmin = (id: string) => {
+    const admin = admins.find((a) => a.id === id);
+    if (admin) {
+      setEditingAdmin(admin);
+      openModal(
+        <AdminEditOverlay
+          admin={admin}
+          branches={["Bulbula", "Hayat", "Semit", "Megenagna"]}
+          onSave={async (data) => {
+            const success = await handleEdit(id, data);
+            if (success) {
+              refetch();
+              closeModal();
+              setEditingAdmin(null);
+            }
+          }}
+          onCancel={() => {
+            closeModal();
+            setEditingAdmin(null);
+          }}
+          isSaving={isEditing === id}
+        />
+      );
+    }
+  };
+
   return (
     <DashboardLayout>
       <div className="space-y-6">
@@ -72,7 +101,7 @@ function Admins() {
           canDelete={isSuperAdmin}
           canEdit={isSuperAdmin}
           isEditing={isEditing}
-          onEdit={handleEdit}
+          onEdit={handleEditAdmin}
         />
       </div>
     </DashboardLayout>

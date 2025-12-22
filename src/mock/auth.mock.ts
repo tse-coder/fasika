@@ -1,4 +1,11 @@
-import users from "./data/admin.json"; // <-- your existing file
+import { User } from "@/types/user.types";
+import { delay } from "./utils";
+import { mockUsers, type MockUser } from "./data";
+
+const sanitizeUser = (user: MockUser): User => {
+  const { password, ...rest } = user;
+  return rest;
+};
 
 // Local definitions to avoid importing from the real API layer
 export interface LoginRequest {
@@ -18,74 +25,33 @@ export interface LoginResponse {
 /**
  * Mock login using existing admin/user JSON
  */
-export const login = async (
+export const mockLogin = async (
   data: LoginRequest
-): Promise<LoginResponse> => {
-  console.log("[MOCK API] login - start", data.email);
+): Promise<LoginResponse & { user: User }> => {
+  await delay();
+  console.log(mockUsers)
+  console.log(data.email, data.password)
+  const found = mockUsers.find(
+    (u) => {
+        console.log(u.email.toLowerCase(), data.email.toLowerCase())
+        return u.email.toLowerCase() === data.email.toLowerCase()
+    }
 
-  // Simulate network latency
-  await new Promise((res) => setTimeout(res, 300));
-
-  const user = (users as any[]).find(
-    (u) =>
-      u.email === data.email &&
-      u.password === data.password &&
-      u.isDeleted === false
   );
-
-  if (!user) {
-    console.error("[MOCK API] login - invalid credentials");
-    throw new Error("Invalid email or password");
+  if (!found || found.password !== data.password) {
+    throw new Error("Invalid credentials");
   }
 
-  /**
-   * Fake JWT payload
-   */
-  const payload = {
-    sub: user.id,
-    email: user.email,
-    role: user.role,
-    name: user.name,
-    iat: Date.now(),
-  };
-
-  const token =
-    "mock.jwt." + btoa(JSON.stringify(payload));
-
-  console.log("[MOCK API] login - success", user.email);
-
-  return {
-    access_token: token,
-    name: user.name,
-    email: user.email,
-    sub: user.sub,
-    role: user.role
-  };
-};
-
-/**
- * Mock password reset
- */
-export const mockResetPassword = async (
-  userId: string,
-  data: { newPassword: string }
-): Promise<void> => {
-  console.log("[MOCK API] resetPassword - start", userId);
-
-  // Simulate network latency
-  await new Promise((res) => setTimeout(res, 300));
-
-  const userIndex = (users as any[]).findIndex(
-    (u) => u.id === userId && u.isDeleted === false
+  const payload = btoa(
+    JSON.stringify({
+      sub: found.id,
+      role: found.role,
+      branch: found.branch,
+      name: found.name,
+      email: found.email,
+    })
   );
-
-  if (userIndex === -1) {
-    console.error("[MOCK API] resetPassword - user not found");
-    throw new Error("User not found");
-  }
-
-  // Update password in mock data
-  (users as any[])[userIndex].password = data.newPassword;
-
-  console.log("[MOCK API] resetPassword - success", userId);
+  const access_token = `mock.${payload}.token`;
+  // @ts-expect-error
+  return { access_token, user: sanitizeUser(found) };
 };

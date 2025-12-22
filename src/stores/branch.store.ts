@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import { Branch } from "@/types/user.types";
-import { mockBranches } from "@/mock/api";
+import { branches } from "@/mock/api";
+import { Branch } from "@/types/api.types";
 
 interface BranchState {
   currentBranch: Branch;
@@ -13,8 +13,8 @@ interface BranchState {
 export const useBranchStore = create<BranchState>()(
   persist(
     (set) => ({
-      currentBranch: mockBranches[0],
-      branches: mockBranches,
+      currentBranch: branches[0],
+      branches: branches,
       setBranch: (branch: Branch) => set({ currentBranch: branch }),
       setFromUser: (branch?: Branch) => {
         if (branch) set({ currentBranch: branch });

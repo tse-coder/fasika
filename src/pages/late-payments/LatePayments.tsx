@@ -6,7 +6,7 @@ import { useLatePayments, type LateRange } from "./hooks/useLatePayments";
 import { useNotificationHandler } from "./hooks/useNotificationHandler";
 import { LatePaymentsHeader } from "./components/LatePaymentsHeader";
 import { LatePaymentsTable } from "./components/LatePaymentsTable";
-import { mockExportPayments } from "@/mock/api";
+import { exportPayments } from "@/mock/api";
 
 /**
  * Main component for the Late Payments page
@@ -45,7 +45,7 @@ const LatePayments = () => {
       const childIds = latePayments.map(lp => lp.id);
       
       // Export payments for these children
-      const { csv, filename } = await mockExportPayments({ 
+      const { csv, filename } = await exportPayments({ 
         child_id: childIds.length === 1 ? childIds[0] : undefined 
       });
       

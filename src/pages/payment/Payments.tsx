@@ -29,10 +29,10 @@ const Payments = () => {
     loadPayments,
     handleSelectChild,
     handleRemoveChild,
-    startMonth,
-    endMonth,
-    setStartMonth,
-    setEndMonth,
+    startDate,
+    endDate,
+    setStartDate,
+    setEndDate,
   } = usePaymentsData();
 
   const {
@@ -50,7 +50,9 @@ const Payments = () => {
     search,
     selectedChildren,
     selectedMethod,
-    children
+    children,
+    startDate,
+    endDate
   );
 
   return (
@@ -65,15 +67,17 @@ const Payments = () => {
           onRemoveChild={handleRemoveChild}
           selectedMethod={selectedMethod}
           setSelectedMethod={setSelectedMethod}
-          startMonth={startMonth}
-          endMonth={endMonth}
-          setStartMonth={setStartMonth}
-          setEndMonth={setEndMonth}
+          startDate={startDate}
+          endDate={endDate}
+          setStartDate={setStartDate}
+          setEndDate={setEndDate}
           open={open}
           setOpen={setOpen}
           onSubmitPayment={handleSubmitPayment}
           isSubmitting={isSubmitting}
           userRole={user?.role}
+          filteredPayments={filteredPayments}
+          children={children}
         />
         {user?.role === "ADMIN" && (
           <PaymentsTable

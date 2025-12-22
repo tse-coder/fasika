@@ -1,9 +1,16 @@
-import raw from "./data/children.json";
 import { Child, ChildQuery } from "@/types/child.types";
-import { PaginatedResponse } from "@/types/api.types";
+import { PaginatedResponse, Branch } from "@/types/api.types";
+import { mockChildren } from "./data";
 import { delay } from "./utils";
 
-const children: Child[] = structuredClone(raw as Child[]);
+let children: Array<Child & { branch?: Branch; program?: string }> = [
+  ...mockChildren,
+];
+
+const nextId = (() => {
+  let current = 4000;
+  return () => ++current;
+})();
 
 /**
  * Pagination helper (matches your PaginatedResponse)
@@ -23,15 +30,14 @@ const paginate = <T>(
  * Create child
  */
 export const createChild = async (
-  child: Omit<Child, "id" | "monthlyFee">
+  child: Omit<Child, "id">
 ): Promise<Child> => {
   await delay();
 
-  const newChild: Child = {
+  const newChild: Child & { branch?: Branch; program?: string } = {
     ...child,
-    id: Math.max(0, ...children.map(c => c.id)) + 1,
-    monthlyFee: 1000,
-    parents: child.parents ?? [],
+    id: nextId(),
+    monthlyFee: child.monthlyFee,
   };
 
   children.push(newChild);
@@ -42,27 +48,29 @@ export const createChild = async (
  * Fetch children (filters + pagination)
  */
 export const fetchChildren = async (
-  params: ChildQuery = {}
+  params: Record<string, any> = {}
 ): Promise<PaginatedResponse<Child>> => {
   await delay();
 
   let filtered = [...children];
 
+  // Filter by branch if specified
+  if (params.branch) {
+    filtered = filtered.filter((child) => child.branch === params.branch);
+  }
+
+  // Filter by search query
   if (params.query) {
-    const q = params.query.toLowerCase();
-    filtered = filtered.filter(
-      c =>
-        c.fname.toLowerCase().includes(q) ||
-        c.lname.toLowerCase().includes(q)
+    const query = params.query.toLowerCase();
+    filtered = filtered.filter((child) =>
+      `${child.fname} ${child.lname}`.toLowerCase().includes(query) ||
+      `${child.parents?.[0]?.id || ""}`.includes(query)
     );
   }
 
-  if (params.gender) {
-    filtered = filtered.filter(c => c.gender === params.gender);
-  }
-
+  // Filter by active status
   if (typeof params.is_active === "boolean") {
-    filtered = filtered.filter(c => c.is_active === params.is_active);
+    filtered = filtered.filter((child) => child.is_active === params.is_active);
   }
 
   return paginate(filtered, params.page, params.limit);
@@ -71,29 +79,18 @@ export const fetchChildren = async (
 /**
  * Fetch child by ID
  */
-export const fetchChildById = async (id: number): Promise<Child> => {
+export const fetchChildById = async (id: number): Promise<Child | null> => {
   await delay();
-  const child = children.find(c => c.id === id);
-  if (!child) throw new Error("Child not found");
-  return child;
+  return children.find((c) => c.id === id) || null;
 };
 
 /**
  * Update child
  */
-export const updateChild = async (
-  id: number,
-  updates: Partial<Child>
-): Promise<Child> => {
+export const updateChild = async (id: number, updates: Partial<Child>): Promise<Child> => {
   await delay();
-
-  const index = children.findIndex(c => c.id === id);
-  if (index === -1) throw new Error("Child not found");
-
-  children[index] = {
-    ...children[index],
-    ...updates,
-  };
-
-  return children[index];
+  const idx = children.findIndex((c) => c.id === id);
+  if (idx === -1) throw new Error("Child not found");
+  children[idx] = { ...children[idx], ...updates };
+  return children[idx];
 };

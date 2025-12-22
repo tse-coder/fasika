@@ -1,6 +1,6 @@
 // src/mocks/users.mock.ts
 
-import rawData from "./data/admin.json";
+import { mockUsers, type MockUser } from "./data";
 import {
   User,
   CreateUserRequest,
@@ -11,7 +11,7 @@ import {
 /**
  * Clone JSON so we can mutate it safely
  */
-const mockUsers: User[] = structuredClone(rawData as User[]);
+const users: MockUser[] = structuredClone(mockUsers);
 
 /**
  * Simulate network latency
@@ -24,7 +24,7 @@ const delay = (ms = 300) =>
  */
 export const fetchUsers = async (): Promise<User[]> => {
   await delay();
-  return mockUsers.filter((u) => !u.isDeleted);
+  return users.filter((u) => !u.isDeleted);
 };
 
 /**
@@ -37,7 +37,7 @@ export const createUser = async (
 
   const now = new Date().toISOString();
 
-  const newUser: User = {
+  const newUser: MockUser = {
     id: crypto.randomUUID(),
     name: data.name,
     email: data.email,
@@ -52,7 +52,7 @@ export const createUser = async (
     branch: data.branch
   };
 
-  mockUsers.push(newUser);
+  users.push(newUser);
   return newUser;
 };
 

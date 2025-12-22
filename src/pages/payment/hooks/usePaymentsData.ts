@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useChildren } from "@/stores/children.store";
 import { usePayments } from "@/stores/payment.store";
+import { useBranchStore } from "@/stores/branch.store";
 import { Child } from "@/types/child.types";
 
 /**
@@ -10,6 +11,7 @@ import { Child } from "@/types/child.types";
 export const usePaymentsData = () => {
   const [searchParams] = useSearchParams();
   const { children, fetchChildren } = useChildren();
+  const { currentBranch } = useBranchStore();
   const {
     payments,
     pagination,
@@ -19,13 +21,13 @@ export const usePaymentsData = () => {
   const [page, setPage] = useState(1);
   const [selectedChildren, setSelectedChildren] = useState<Child[]>([]);
   const [selectedMethod, setSelectedMethod] = useState<string>("all");
-  const [startMonth, setStartMonth] = useState<string | null>(null); // format YYYY-MM
-  const [endMonth, setEndMonth] = useState<string | null>(null); // format YYYY-MM
+  const [startDate, setStartDate] = useState<string | null>(null); // format YYYY-MM-DD
+  const [endDate, setEndDate] = useState<string | null>(null); // format YYYY-MM-DD
 
   // Load children and payments on mount
   useEffect(() => {
-    fetchChildren({ page: 1, limit: 100 });
-  }, [fetchChildren]);
+    fetchChildren({ page: 1, limit: 100, branch: currentBranch });
+  }, [fetchChildren, currentBranch]);
 
   // Load payments when filters change
   const loadPayments = useCallback(async () => {
@@ -33,6 +35,7 @@ export const usePaymentsData = () => {
       page,
       limit: 20,
       order: "desc",
+      branch: currentBranch,
     };
 
     if (selectedChildren.length === 1) {
@@ -41,17 +44,15 @@ export const usePaymentsData = () => {
 
     if (selectedMethod && selectedMethod !== "all") filters.method = selectedMethod;
 
-    if (startMonth) {
-      filters.startDate = `${startMonth}-01`;
+    if (startDate) {
+      filters.startDate = startDate;
     }
-    if (endMonth) {
-      const [y, m] = endMonth.split("-").map(Number);
-      const lastDay = new Date(y, m, 0).getDate();
-      filters.endDate = `${endMonth}-${String(lastDay).padStart(2, "0")}`;
+    if (endDate) {
+      filters.endDate = endDate;
     }
 
     await fetchPayments(filters);
-  }, [page, selectedChildren, selectedMethod, startMonth, endMonth, fetchPayments]);
+  }, [page, selectedChildren, selectedMethod, startDate, endDate, fetchPayments, currentBranch]);
 
   useEffect(() => {
     loadPayments();
@@ -101,10 +102,10 @@ export const usePaymentsData = () => {
     selectedChildren,
     selectedMethod,
     setSelectedMethod,
-    startMonth,
-    endMonth,
-    setStartMonth,
-    setEndMonth,
+    startDate,
+    endDate,
+    setStartDate,
+    setEndDate,
     isLoading: paymentsLoading,
     loadPayments,
     handleSelectChild,

@@ -29,7 +29,7 @@ export const LoginForm = ({
   onSubmit,
 }: LoginFormProps) => {
   return (
-    <Card className="w-full max-w-md">
+    <Card className="w-full max-w-md overflow-hidden">
       <img src="logo.png" alt="logo" className="w-full" />
       <CardHeader className="space-y-1">
         <CardDescription className="text-center">

@@ -7,6 +7,7 @@ import {
   mockDeleteUser,
   mockFetchUsers,
   mockResetPassword,
+  mockUpdateUser,
 } from "@/mock/api";
 
 // Convert User to Admin (for backward compatibility)
@@ -116,6 +117,27 @@ export const useAdminsStore = create<AdminState>((set) => ({
     } catch (err) {
       console.error("Error changing role:", err);
       set({ error: "Failed to change role.", isLoading: false });
+      throw err;
+    }
+  },
+
+  updateAdmin: async (id: string, data: { name?: string; email?: string; branch?: string; role?: "ADMIN" | "USER" }) => {
+    set({ isLoading: true, error: null });
+    console.log("[Store] updateAdmin - start", id, data);
+    try {
+      const updatedUser = await mockUpdateUser(id, data);
+      const updatedAdmin = userToAdmin(updatedUser);
+      set((state) => ({
+        admins: state.admins.map((admin) =>
+          admin.id === id ? updatedAdmin : admin
+        ),
+        isLoading: false,
+      }));
+      console.log("[Store] updateAdmin - success", updatedAdmin);
+      return updatedAdmin;
+    } catch (err) {
+      console.error("Error updating admin:", err);
+      set({ error: "Failed to update admin.", isLoading: false });
       throw err;
     }
   },

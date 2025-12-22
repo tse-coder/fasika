@@ -1,5 +1,5 @@
 
-import { mockFetchParents } from "@/mock/api";
+import { fetchParents } from "@/mock/api";
 import { PaginatedResponse } from "@/types/api.types";
 import { Parent, parentState } from "@/types/parent.types";
 import { create } from "zustand";
@@ -15,7 +15,7 @@ export const useParents = create<parentState>((set) => ({
     console.log("[Store] fetchParents - start", filters);
     try {
       // Fetch from API
-      const response = await mockFetchParents(filters);
+      const response = await fetchParents(filters);
       console.log("[Store] fetchParents - api returned", response);
 
       // API may return a paginated response or a plain array. Normalize both.

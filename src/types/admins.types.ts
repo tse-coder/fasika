@@ -29,4 +29,5 @@ export interface AdminState {
   changeRole: (id: string, action: "PROMOTE" | "DEMOTE") => Promise<Admin>;
   isLoading: boolean;
   error: string | null;
+  updateAdmin: (id: string, data: { name?: string; phone?: string }) => Promise<Admin>;
 }

@@ -5,14 +5,15 @@ import { useAuth } from "@/stores/auth.store";
 import { CreateUserRequest, User } from "@/types/user.types";
 
 /**
- * Custom hook to handle admin actions (create, delete, promote)
+ * Custom hook to handle admin actions (create, delete, edit)
  */
 export const useAdminActions = () => {
   const { toast } = useToast();
-  const { createAdmin, deleteAdmin, changeRole } = useAdminsStore();
+  const { createAdmin, deleteAdmin, changeRole, updateAdmin } = useAdminsStore();
   const { user } = useAuth();
   const [isDeleting, setIsDeleting] = useState<string | null>(null);
   const [isCreating, setIsCreating] = useState(false);
+  const [isEditing, setIsEditing] = useState<string | null>(null);
 
   const handleCreateAdmin = async (
     data: CreateUserRequest & { makeAdmin: boolean }
@@ -75,17 +76,40 @@ export const useAdminActions = () => {
     }
   };
 
-  const handleEdit = async (id:string,user: User)=>{
-
-  }
+  const handleEdit = async (id: string, data: { name: string; email: string; branch: string; role: "ADMIN" | "USER" }) => {
+    setIsEditing(id);
+    try {
+      await updateAdmin(id, data);
+      toast({
+        title: "User Updated",
+        description: "The user has been updated successfully.",
+      });
+      return true;
+    } catch (err: any) {
+      const errorMessage =
+        err?.response?.data?.message ||
+        err?.message ||
+        "Failed to update user.";
+      toast({
+        title: "Error",
+        description: errorMessage,
+        variant: "destructive",
+      });
+      return false;
+    } finally {
+      setIsEditing(null);
+    }
+  };
 
   const isSuperAdmin = user?.role === "ADMIN";
 
   return {
     handleCreateAdmin,
     handleDeleteAdmin,
+    handleEdit,
     isDeleting,
     isCreating,
+    isEditing,
     isSuperAdmin,
   };
 };

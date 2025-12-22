@@ -10,14 +10,16 @@ export const getChildName = (childId: number, children: Child[]): string => {
 };
 
 /**
- * Filter payments based on search query, selected children, and payment method
+ * Filter payments based on search query, selected children, payment method, and date range
  */
 export const filterPayments = (
   payments: Payment[],
   search: string,
   selectedChildren: Child[],
   selectedMethod: string,
-  children: Child[]
+  children: Child[],
+  startDate?: string | null,
+  endDate?: string | null
 ): Payment[] => {
   return payments.filter((p) => {
     // Filter by selected children (if multiple selected, show all)
@@ -29,6 +31,19 @@ export const filterPayments = (
     // Filter by payment method
     if (selectedMethod !== "all" && p.method !== selectedMethod) {
       return false;
+    }
+
+    // Filter by date range
+    if (startDate) {
+      const paymentDate = new Date(p.payment_date);
+      const start = new Date(startDate);
+      if (paymentDate < start) return false;
+    }
+    if (endDate) {
+      const paymentDate = new Date(p.payment_date);
+      const end = new Date(endDate);
+      end.setHours(23, 59, 59, 999); // Include the entire end date
+      if (paymentDate > end) return false;
     }
 
     // Filter by search query

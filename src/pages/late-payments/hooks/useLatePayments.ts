@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useChildren } from "@/stores/children.store";
+import { useBranchStore } from "@/stores/branch.store";
 import { useToast } from "@/hooks/use-toast";
 import {
   getMonthsFromJanuaryToNow,
@@ -28,6 +29,7 @@ export type LateRange = "1" | "2" | "3" | "3+" | "expiring";
  */
 export const useLatePayments = (lateRange: LateRange, showExpiring: boolean) => {
   const { fetchChildren } = useChildren();
+  const { currentBranch } = useBranchStore();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [latePayments, setLatePayments] = useState<LatePaymentChild[]>([]);
@@ -36,8 +38,8 @@ export const useLatePayments = (lateRange: LateRange, showExpiring: boolean) => 
     const loadLatePayments = async () => {
       setIsLoading(true);
       try {
-        // Fetch all active children
-        const allChildren = await fetchChildren({ limit: 1000 });
+        // Fetch all active children for current branch
+        const allChildren = await fetchChildren({ limit: 1000, branch: currentBranch });
         const childrenArray = Array.isArray(allChildren)
           ? allChildren
           : (allChildren as any).data || [];
@@ -147,7 +149,7 @@ export const useLatePayments = (lateRange: LateRange, showExpiring: boolean) => 
     };
 
     loadLatePayments();
-  }, [lateRange, showExpiring, fetchChildren, toast]);
+  }, [lateRange, showExpiring, fetchChildren, toast, currentBranch]);
 
   return {
     latePayments,

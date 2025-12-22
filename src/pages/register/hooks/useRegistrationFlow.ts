@@ -19,9 +19,9 @@ export const useRegistrationFlow = () => {
   const childRegistration = useChildRegistration();
 
   const refreshParents = async (): Promise<Parent[]> => {
-    const trimmed = parentSelection.parentSearch.trim();
-    const refreshed =
-      (await fetchParents(trimmed ? { query: trimmed } : { page: 1 })) || [];
+    // Clear search when refreshing after parent creation to ensure new parent appears
+    parentSelection.setParentSearch("");
+    const refreshed = (await fetchParents({ page: 1 })) || [];
     // Update parent list by triggering a re-fetch via setting page to 1
     parentSelection.setParentPage(1);
     return refreshed;

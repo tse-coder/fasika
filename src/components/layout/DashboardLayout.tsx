@@ -20,7 +20,14 @@ import { Button } from "@/components/ui/button";
 import { UserInfoOverlay } from "@/components/user/UserInfoOverlay";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import { useBranchStore } from "@/stores/branch.store";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../ui/select";
+import { Branch } from "@/types/api.types";
 interface DashboardLayoutProps {
   children: ReactNode;
 }
@@ -42,11 +49,11 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const openModal = useModalStore((state) => state.openModal);
   const closeModal = useModalStore((state) => state.closeModal);
-  const { name, email, role } = useUserProfile();
+  const { name, email, role, updateUser } = useUserProfile();
   const { currentBranch, branches, setBranch, setFromUser } = useBranchStore();
 
   useEffect(() => {
-    setFromUser(user?.branch);
+    setFromUser(user?.branch as Branch);
   }, [user?.branch, setFromUser]);
 
   const handleLogout = () => {
@@ -61,6 +68,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
         email={email}
         role={role}
         onClose={closeModal}
+        onUpdate={updateUser}
       />
     );
   };
@@ -84,7 +92,7 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
       >
         <div className="flex flex-col h-full">
           {/* Logo */}
-          <div className="p-6 border-b border-sidebar-border">
+          <div className="border-b border-sidebar-border">
             <img src="logo.png" alt="logo" />
           </div>
 
@@ -94,7 +102,9 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
               const isActive = location.pathname === item.path;
               const hideForUser =
                 role === "USER" &&
-                (item.path === "/" || item.path === "/payment-info" || item.path === "/admins");
+                (item.path === "/" ||
+                  item.path === "/payment-info" ||
+                  item.path === "/admins");
               if (hideForUser) return null;
               return (
                 <Link
@@ -166,31 +176,32 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
             {role === "ADMIN" ? (
               <Select
                 value={currentBranch}
-                onValueChange={(value) => setBranch(value)}
+                onValueChange={(value) => setBranch(value as Branch)}
               >
                 <SelectTrigger>
-                  <SelectValue/>
+                  <SelectValue />
                 </SelectTrigger>
-                <SelectContent>{branches.map((branch) => (
-                  <SelectItem key={branch} value={branch}>
-                    {branch}
-                  </SelectItem>
-                ))}</SelectContent>
-                
+                <SelectContent>
+                  {branches.map((branch) => (
+                    <SelectItem key={branch} value={branch}>
+                      {branch}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
               </Select>
             ) : (
               <span className="text-sm font-medium text-muted-foreground">
                 Branch: {currentBranch}
               </span>
             )}
-            <span className="text-sm text-muted-foreground">
+            {/* <span className="text-sm text-muted-foreground">
               {new Date().toLocaleDateString("en-US", {
                 weekday: "long",
                 year: "numeric",
                 month: "long",
                 day: "numeric",
               })}
-            </span>
+            </span> */}
           </div>
         </header>
 

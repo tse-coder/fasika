@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useChildren } from "@/stores/children.store";
+import { useBranchStore } from "@/stores/branch.store";
 import { Child } from "@/types/child.types";
 
 /**
@@ -7,6 +8,7 @@ import { Child } from "@/types/child.types";
  */
 export const useChildrenData = () => {
   const { fetchChildren, isLoading } = useChildren();
+  const { currentBranch } = useBranchStore();
   const [list, setList] = useState<Child[]>([]);
   const [allChildren, setAllChildren] = useState<Child[]>([]);
   const [page, setPage] = useState(1);
@@ -46,6 +48,9 @@ export const useChildrenData = () => {
         params.is_active = activeFilter === "active";
       }
 
+      // Add branch filter
+      params.branch = currentBranch;
+
       const response = (await fetchChildren(params)) || [];
       const data = Array.isArray(response)
         ? response
@@ -82,7 +87,7 @@ export const useChildrenData = () => {
     return () => {
       cancelled = true;
     };
-  }, [page, debouncedSearch, activeFilter, fetchChildren]);
+  }, [page, debouncedSearch, activeFilter, fetchChildren, currentBranch]);
 
   const loadMore = () => {
     if (isLoading || isLoadingMore || debouncedSearch.trim()) return;

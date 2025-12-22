@@ -16,10 +16,11 @@ import {
 import { Input } from "@/components/ui/input";
 import { Plus, Search, Filter, File, Calendar } from "lucide-react";
 import { useCallback, useState } from "react";
-import { mockExportPayments } from "@/mock/api";
+import { exportPayments } from "@/mock/api";
 import { StudentSearch } from "./studentSearch";
 import { PaymentForm } from "./paymentForm";
 import type { Child } from "@/types/child.types";
+import { getChildName } from "../utils/paymentFilters";
 
 const PAYMENT_METHODS = ["Cash", "CBE", "Dashen Bank"];
 
@@ -41,11 +42,13 @@ type PaymentHeaderProps = {
     notes?: string;
   }) => Promise<void>;
   isSubmitting: boolean;
-  startMonth: string | null;
-  endMonth: string | null;
-  setStartMonth: (v: string | null) => void;
-  setEndMonth: (v: string | null) => void;
+  startDate: string | null;
+  endDate: string | null;
+  setStartDate: (v: string | null) => void;
+  setEndDate: (v: string | null) => void;
   userRole?: "ADMIN" | "USER";
+  filteredPayments?: any[];
+  children?: Child[];
 };
 
 function PaymentHeader({
@@ -60,34 +63,70 @@ function PaymentHeader({
   setOpen,
   onSubmitPayment,
   isSubmitting,
-  startMonth,
-  endMonth,
-  setStartMonth,
-  setEndMonth,
+  startDate,
+  endDate,
+  setStartDate,
+  setEndDate,
   userRole,
+  filteredPayments = [],
+  children = [],
 }: PaymentHeaderProps) {
   const [isExporting, setIsExporting] = useState(false);
 
   const handleExport = useCallback(async () => {
     try {
       setIsExporting(true);
-      const params: Record<string, any> = {};
-      if (startMonth) params.startDate = `${startMonth}-01`;
-      if (endMonth) {
-        const [y, m] = endMonth.split("-").map(Number);
-        const lastDay = new Date(y, m, 0).getDate();
-        params.endDate = `${endMonth}-${String(lastDay).padStart(2, "0")}`;
-      }
-      if (selectedMethod && selectedMethod !== "all") params.method = selectedMethod;
 
-      const res = await mockExportPayments(params);
-      // download as Excel-compatible file (CSV content with .xls extension)
-      const fname = res.filename.replace(/\.csv$/i, ".xls");
-      const blob = new Blob([res.csv], { type: "application/vnd.ms-excel" });
+      // Use the current filtered payments instead of making an API call
+      const data = filteredPayments;
+
+      // Build CSV
+      const headers = [
+        "id",
+        "child_id",
+        "child_name",
+        "total_amount",
+        "payment_date",
+        "method",
+        "notes",
+        "category",
+        "branch",
+        "program",
+      ];
+
+      const rows = data.map((p) => [
+        p.id,
+        p.child_id,
+        getChildName(p.child_id, children),
+        p.total_amount,
+        p.payment_date,
+        p.method,
+        (p.notes || "")?.replace(/"/g, '""'),
+        p.category || "",
+        p.branch || "",
+        p.program || "",
+      ]);
+
+      const csv = [
+        headers.join(","),
+        ...rows.map((r) =>
+          r
+            .map((c) =>
+              typeof c === "string" && c.includes(",") ? `"${c}"` : `${c}`
+            )
+            .join(",")
+        ),
+      ].join("\n");
+
+      // Download as Excel-compatible file (CSV content with .xls extension)
+      const filename = `payments_export_${
+        new Date().toISOString().split("T")[0]
+      }.csv`;
+      const blob = new Blob([csv], { type: "application/vnd.ms-excel" });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = fname;
+      a.download = filename.replace(/\.csv$/i, ".xls");
       document.body.appendChild(a);
       a.click();
       a.remove();
@@ -97,20 +136,21 @@ function PaymentHeader({
     } finally {
       setIsExporting(false);
     }
-  }, [startMonth, endMonth, selectedMethod]);
+  }, [filteredPayments, children]);
 
   return (
     <div className="space-y-4">
       {/* Student Search and Payment Button */}
       <div className="flex flex-col sm:flex-row justify-between gap-4">
-        {userRole === "ADMIN" && (<div className="flex-1">
-          <StudentSearch
-            selectedChildren={selectedChildren}
-            onSelect={onSelectChild}
-            onRemove={onRemoveChild}
-          />
-        </div>)}
-        
+        {userRole === "ADMIN" && (
+          <div className="flex-1">
+            <StudentSearch
+              selectedChildren={selectedChildren}
+              onSelect={onSelectChild}
+              onRemove={onRemoveChild}
+            />
+          </div>
+        )}
 
         <div className="flex gap-2">
           {userRole === "ADMIN" && (
@@ -147,22 +187,22 @@ function PaymentHeader({
                 <div className="relative">
                   <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <Input
-                    type="month"
-                    value={startMonth ?? ""}
-                    onChange={(e) => setStartMonth(e.target.value || null)}
+                    type="date"
+                    value={startDate ?? ""}
+                    onChange={(e) => setStartDate(e.target.value || null)}
                     className="pl-10 w-[140px]"
-                    aria-label="Start month"
+                    aria-label="Start date"
                   />
                 </div>
                 <span className="text-sm text-muted-foreground">to</span>
                 <div className="relative">
                   <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                   <Input
-                    type="month"
-                    value={endMonth ?? ""}
-                    onChange={(e) => setEndMonth(e.target.value || null)}
+                    type="date"
+                    value={endDate ?? ""}
+                    onChange={(e) => setEndDate(e.target.value || null)}
                     className="pl-10 w-[140px]"
-                    aria-label="End month"
+                    aria-label="End date"
                   />
                 </div>
               </div>

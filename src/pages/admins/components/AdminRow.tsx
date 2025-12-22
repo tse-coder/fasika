@@ -9,9 +9,9 @@ interface AdminRowProps {
   onDelete: (id: string) => void;
   isDeleting: boolean;
   canDelete: boolean;
-  onEdit: (id: string)=> void;
-  isEditing: boolean;
-  canEdit: boolean
+  onEdit: (id: string) => void;
+  isEditing: string;
+  canEdit: boolean;
 }
 
 /**
@@ -24,12 +24,12 @@ export const AdminRow = ({
   canDelete,
   onEdit,
   isEditing,
-  canEdit
+  canEdit,
 }: AdminRowProps) => {
   const canDeleteThisAdmin = canDelete;
   const isCurrentlyDeleting = isDeleting;
   const isCurrentlyEditing = isEditing;
-  const canEditThisAdmin = false;
+  const canEditThisAdmin = canEdit && admin.id !== "u-admin-1"; // Can't edit super admin
 
   return (
     <tr className="border-b border-border/50 hover:bg-muted/30 transition-colors">
@@ -47,9 +47,7 @@ export const AdminRow = ({
         </div>
       </td>
       <td className="py-4 px-4">
-        <Badge variant="outline">
-          {admin.branch}
-        </Badge>
+        <Badge variant="outline">{admin.branch}</Badge>
       </td>
       <td className="py-4 px-4">
         <Badge variant={admin.role === "ADMIN" ? "default" : "secondary"}>
@@ -60,21 +58,36 @@ export const AdminRow = ({
         {new Date(admin.createdAt).toLocaleDateString()}
       </td>
       <td className="py-4 px-4">
-        {/* Edit disabled per requirements */}
-        {canDeleteThisAdmin && (
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => onDelete(admin.id)}
-            disabled={isCurrentlyDeleting}
-          >
-            {isCurrentlyDeleting ? (
-              <LoaderIcon className="w-4 h-4" />
-            ) : (
-              <Trash2 className="w-4 h-4 text-destructive" />
-            )}
-          </Button>
-        )}
+        <div className="flex items-center gap-2">
+          {canEditThisAdmin && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => onEdit(admin.id)}
+              disabled={isCurrentlyEditing === admin.id}
+            >
+              {isCurrentlyEditing === admin.id ? (
+                <LoaderIcon className="w-4 h-4" />
+              ) : (
+                <PenLine className="w-4 h-4 text-blue-500" />
+              )}
+            </Button>
+          )}
+          {canDeleteThisAdmin && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => onDelete(admin.id)}
+              disabled={isCurrentlyDeleting}
+            >
+              {isCurrentlyDeleting ? (
+                <LoaderIcon className="w-4 h-4" />
+              ) : (
+                <Trash2 className="w-4 h-4 text-destructive" />
+              )}
+            </Button>
+          )}
+        </div>
       </td>
     </tr>
   );

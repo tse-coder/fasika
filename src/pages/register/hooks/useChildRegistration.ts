@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useChildren } from "@/stores/children.store";
 import { Parent } from "@/types/parent.types";
-import { mockCreateChild } from "@/mock/api";
+import { createChild } from "@/mock/api";
 import { Branch } from "@/types/api.types";
 import { Program } from "@/mock/data";
 import { useBranchStore } from "@/stores/branch.store";
@@ -89,7 +89,8 @@ export const useChildRegistration = () => {
   const handleChildChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
-    const { name, value, type, checked } = e.target;
+    const target = e.target as HTMLInputElement;
+    const { name, value, type, checked } = target;
     const nextValue = type === "checkbox" ? checked : value;
     setChildForm((prev) => ({ ...prev, [name]: nextValue }));
   };
@@ -98,10 +99,20 @@ export const useChildRegistration = () => {
     selectedParent: number | null,
     parentList: Parent[]
   ) => {
+    if (!selectedParent) {
+      console.warn("[Register] handleSubmit - no parent selected");
+      toast({
+        title: "Error",
+        description: "Please select a parent first.",
+        variant: "destructive",
+      });
+      return false;
+    }
+
+    // Find parent in list, but don't fail if not found (could be newly created)
     const parent = parentList.find((p) => p.id === selectedParent);
     if (!parent) {
-      console.warn("[Register] handleSubmit - no parent selected");
-      return;
+      console.warn("[Register] handleSubmit - parent not found in current list, but proceeding with selected ID");
     }
 
     const childValidation = validateChildForm();
@@ -134,7 +145,7 @@ export const useChildRegistration = () => {
       discountNote: childForm.hasDiscount ? childForm.discountNote : undefined,
       parents: [
         {
-          id: parent.id,
+          id: selectedParent,
           relationship: childForm.relationship || "guardian",
           isPrimary: true,
         },
@@ -143,7 +154,7 @@ export const useChildRegistration = () => {
 
     try {
       setIsSubmittingChild(true);
-      await mockCreateChild(childPayload as any);
+      await createChild(childPayload as any);
       await fetchChildren();
       toast({ title: "Success!", description: "Child has been registered." });
 
