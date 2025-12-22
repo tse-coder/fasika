@@ -29,7 +29,7 @@ export const AdminRow = ({
   const canDeleteThisAdmin = canDelete;
   const isCurrentlyDeleting = isDeleting;
   const isCurrentlyEditing = isEditing;
-  const canEditThisAdmin = canDelete
+  const canEditThisAdmin = false;
 
   return (
     <tr className="border-b border-border/50 hover:bg-muted/30 transition-colors">
@@ -60,20 +60,7 @@ export const AdminRow = ({
         {new Date(admin.createdAt).toLocaleDateString()}
       </td>
       <td className="py-4 px-4">
-        {canEditThisAdmin && (
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => onEdit(admin.id)}
-            disabled={isCurrentlyEditing}
-          >
-            {isCurrentlyEditing ? (
-              <LoaderIcon className="w-4 h-4" />
-            ) : (
-              <PenLine className="w-4 h-4 " />
-            )}
-          </Button>
-        )}
+        {/* Edit disabled per requirements */}
         {canDeleteThisAdmin && (
           <Button
             variant="ghost"

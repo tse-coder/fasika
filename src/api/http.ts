@@ -38,7 +38,9 @@ client.interceptors.response.use(
           config.url
         } [${status}]`
       );
-    } catch (e) {}
+    } catch (e) {
+      console.error("[API] Response logging failed:", e);
+    }
     return response;
   },
   (error) => {
@@ -59,7 +61,9 @@ client.interceptors.response.use(
           error.message
         );
       }
-    } catch (e) {}
+    } catch (e) {
+      console.error("[API] Error logging failed:", e);
+    }
     return Promise.reject(error);
   }
 );

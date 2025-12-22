@@ -2,6 +2,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { User } from "lucide-react";
+import { Branch } from "@/types/api.types";
 
 // ------------------------------
 // Child Information Step
@@ -10,10 +11,14 @@ export function ChildInfoStep({
   form,
   onChange,
   errors = {},
+  branches,
+  discountPercent,
 }: {
   form: any;
   onChange: any;
   errors?: Record<string, string>;
+  branches: Branch[];
+  discountPercent: number;
 }) {
   return (
     <Card className="mb-6">
@@ -71,28 +76,65 @@ export function ChildInfoStep({
             )}
           </div>
 
-            <div>
-              <Label>Relationship to Selected Parent</Label>
-              <select
-                name="relationship"
-                value={form.relationship || "guardian"}
-                onChange={onChange}
-                className={`w-full rounded border px-3 py-2 ${
-                  errors.relationship ? "border-red-500" : "border-gray-300"
-                }`}
-              >
-                <option value="guardian">Guardian</option>
-                <option value="mother">Mother</option>
-                <option value="father">Father</option>
-                <option value="sibling">Sibling</option>
-                <option value="other">Other</option>
-              </select>
-              {errors.relationship && (
-                <p className="text-red-600 text-sm mt-1">
-                  {errors.relationship}
-                </p>
-              )}
-            </div>
+          <div>
+            <Label>Branch</Label>
+            <select
+              name="branch"
+              value={form.branch}
+              onChange={onChange}
+              className={`w-full rounded border px-3 py-2 ${
+                errors.branch ? "border-red-500" : "border-gray-300"
+              }`}
+            >
+              {branches.map((branch) => (
+                <option key={branch} value={branch}>
+                  {branch}
+                </option>
+              ))}
+            </select>
+            {errors.branch && (
+              <p className="text-red-600 text-sm mt-1">{errors.branch}</p>
+            )}
+          </div>
+
+          <div>
+            <Label>Program</Label>
+            <select
+              name="program"
+              value={form.program}
+              onChange={onChange}
+              className={`w-full rounded border px-3 py-2 ${
+                errors.program ? "border-red-500" : "border-gray-300"
+              }`}
+            >
+              <option value="kindergarten">Kindergarten</option>
+              <option value="childcare">Childcare</option>
+            </select>
+            {errors.program && (
+              <p className="text-red-600 text-sm mt-1">{errors.program}</p>
+            )}
+          </div>
+
+          <div>
+            <Label>Relationship to Selected Parent</Label>
+            <select
+              name="relationship"
+              value={form.relationship || "guardian"}
+              onChange={onChange}
+              className={`w-full rounded border px-3 py-2 ${
+                errors.relationship ? "border-red-500" : "border-gray-300"
+              }`}
+            >
+              <option value="guardian">Guardian</option>
+              <option value="mother">Mother</option>
+              <option value="father">Father</option>
+              <option value="sibling">Sibling</option>
+              <option value="other">Other</option>
+            </select>
+            {errors.relationship && (
+              <p className="text-red-600 text-sm mt-1">{errors.relationship}</p>
+            )}
+          </div>
 
           <div className="md:col-span-2">
             <Label>Date of Birth (optional if Age provided)</Label>
@@ -105,6 +147,39 @@ export function ChildInfoStep({
             />
             {errors.dateOfBirth && (
               <p className="text-red-600 text-sm mt-1">{errors.dateOfBirth}</p>
+            )}
+          </div>
+
+          <div className="md:col-span-2 space-y-2 border rounded-md p-3">
+            <div className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                name="hasDiscount"
+                checked={form.hasDiscount}
+                onChange={onChange}
+              />
+              <Label className="mb-0">
+                Apply branch discount ({discountPercent}%)
+              </Label>
+            </div>
+            {form.hasDiscount && (
+              <div>
+                <Label>Discount Note</Label>
+                <textarea
+                  name="discountNote"
+                  value={form.discountNote}
+                  onChange={onChange}
+                  className={`w-full rounded border px-3 py-2 ${
+                    errors.discountNote ? "border-red-500" : "border-gray-300"
+                  }`}
+                  placeholder="Add context for the discount"
+                />
+                {errors.discountNote && (
+                  <p className="text-red-600 text-sm mt-1">
+                    {errors.discountNote}
+                  </p>
+                )}
+              </div>
             )}
           </div>
         </div>

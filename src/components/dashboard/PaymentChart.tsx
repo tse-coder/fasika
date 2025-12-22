@@ -11,6 +11,7 @@ import { startOfDay } from "date-fns";
 export const PaymentChart = () => {
   const { payments, fetchPayments, isLoading } = usePayments();
   const [timeRange, setTimeRange] = useState<TimeRange>("month");
+  const [autoAttempt, setAutoAttempt] = useState(0);
 
   useEffect(() => {
     fetchPayments({ limit: 1000, order: "desc" });
@@ -147,6 +148,20 @@ export const PaymentChart = () => {
     () => chartData.reduce((s, i) => s + i.amount, 0),
     [chartData]
   );
+
+  // If there is payment data but current range shows no chart points,
+  // try broader ranges automatically (month -> year -> all) up to 2 attempts.
+  useEffect(() => {
+    if (payments.length === 0) return;
+    const hasPositive = chartData.some((d) => d.amount > 0);
+    if (chartData.length > 0 && hasPositive) return;
+    if (autoAttempt >= 2) return;
+
+    if (autoAttempt === 0) setTimeRange("year");
+    else if (autoAttempt === 1) setTimeRange("all");
+
+    setAutoAttempt((s) => s + 1);
+  }, [payments, chartData, autoAttempt]);
 
   if (isLoading && payments.length === 0) {
     return (

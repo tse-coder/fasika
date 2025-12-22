@@ -7,9 +7,12 @@ import {
   CreatePaymentResponse,
   PaymentsPaginated,
 } from "@/types/payment.types";
-import { createPayment, deletePayment, fetchPaidMonths, fetchPayments } from "@/mock/payment.mock";
-
-
+import {
+  mockCreatePayment,
+  mockDeletePayment,
+  mockFetchPaidMonths,
+  mockFetchPayments,
+} from "@/mock/api";
 export const usePayments = create<PaymentState>((set, get) => ({
   payments: [],
   pagination: {
@@ -24,7 +27,7 @@ export const usePayments = create<PaymentState>((set, get) => ({
   fetchPayments: async (filters = {}) => {
     set({ isLoading: true, error: null });
     try {
-      const response = await fetchPayments(filters);
+      const response = await mockFetchPayments(filters);
       const payments = response.data || [];
       set({
         payments,
@@ -54,7 +57,7 @@ export const usePayments = create<PaymentState>((set, get) => ({
 
   fetchPaidMonths: async (childId: number) => {
     try {
-      const paidMonths = await fetchPaidMonths(childId);
+      const paidMonths = await mockFetchPaidMonths(childId);
       return paidMonths;
     } catch (err: any) {
       console.error("Error fetching paid months:", err);
@@ -68,7 +71,7 @@ export const usePayments = create<PaymentState>((set, get) => ({
   createPayment: async (paymentData: NewPaymentRequest) => {
     set({ isLoading: true, error: null });
     try {
-      const response = await createPayment(paymentData);
+      const response = await mockCreatePayment(paymentData);
       // Refresh payments list after creating
       const currentPayments = get().payments;
       const newPayment: Payment = {
@@ -92,7 +95,7 @@ export const usePayments = create<PaymentState>((set, get) => ({
   deletePayment: async (id: number) => {
     set({ isLoading: true, error: null });
     try {
-      await deletePayment(id);
+      await mockDeletePayment(id);
       const currentPayments = get().payments;
       set({
         payments: currentPayments.filter((p) => p.id !== id),

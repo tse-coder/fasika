@@ -9,7 +9,7 @@ export const useAdmins = () => {
 
   useEffect(() => {
     fetchAdmins();
-  }, []); // Remove fetchAdmins from deps to avoid infinite loop
+  }, [fetchAdmins]);
 
   return {
     admins,

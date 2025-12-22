@@ -7,6 +7,7 @@ import PaymentHeader from "./sections/header";
 import { HeaderExtra } from "./sections/headerExtra";
 import PaymentsTable from "./sections/paymentsTable";
 import { InvoiceOverlay } from "./sections/invoiceOverlay";
+import { useAuth } from "@/stores/auth.store";
 
 /**
  * Main Payments page component
@@ -28,6 +29,10 @@ const Payments = () => {
     loadPayments,
     handleSelectChild,
     handleRemoveChild,
+    startMonth,
+    endMonth,
+    setStartMonth,
+    setEndMonth,
   } = usePaymentsData();
 
   const {
@@ -37,6 +42,7 @@ const Payments = () => {
     handleSubmitPayment,
     handlePaymentClick,
   } = usePaymentActions(loadPayments, children);
+  const { user } = useAuth();
 
   // Filter payments client-side for search
   const filteredPayments = filterPayments(
@@ -50,7 +56,7 @@ const Payments = () => {
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        <HeaderExtra />
+        {user?.role === "ADMIN" && <HeaderExtra />}
         <PaymentHeader
           search={search}
           setSearch={setSearch}
@@ -59,21 +65,28 @@ const Payments = () => {
           onRemoveChild={handleRemoveChild}
           selectedMethod={selectedMethod}
           setSelectedMethod={setSelectedMethod}
+          startMonth={startMonth}
+          endMonth={endMonth}
+          setStartMonth={setStartMonth}
+          setEndMonth={setEndMonth}
           open={open}
           setOpen={setOpen}
           onSubmitPayment={handleSubmitPayment}
           isSubmitting={isSubmitting}
+          userRole={user?.role}
         />
-        <PaymentsTable
-          payments={payments}
-          children={children}
-          getChildName={(id) => getChildName(id, children)}
-          filteredPayments={filteredPayments}
-          onPaymentClick={handlePaymentClick}
-          pagination={pagination}
-          onPageChange={setPage}
-          currentPage={page}
-        />
+        {user?.role === "ADMIN" && (
+          <PaymentsTable
+            payments={payments}
+            children={children}
+            getChildName={(id) => getChildName(id, children)}
+            filteredPayments={filteredPayments}
+            onPaymentClick={handlePaymentClick}
+            pagination={pagination}
+            onPageChange={setPage}
+            currentPage={page}
+          />
+        )}
       </div>
 
       {invoiceData && (

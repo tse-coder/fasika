@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useChildren } from "@/stores/children.store";
 import { usePayments } from "@/stores/payment.store";
@@ -19,6 +19,8 @@ export const usePaymentsData = () => {
   const [page, setPage] = useState(1);
   const [selectedChildren, setSelectedChildren] = useState<Child[]>([]);
   const [selectedMethod, setSelectedMethod] = useState<string>("all");
+  const [startMonth, setStartMonth] = useState<string | null>(null); // format YYYY-MM
+  const [endMonth, setEndMonth] = useState<string | null>(null); // format YYYY-MM
 
   // Load children and payments on mount
   useEffect(() => {
@@ -26,7 +28,7 @@ export const usePaymentsData = () => {
   }, [fetchChildren]);
 
   // Load payments when filters change
-  const loadPayments = async () => {
+  const loadPayments = useCallback(async () => {
     const filters: any = {
       page,
       limit: 20,
@@ -37,14 +39,24 @@ export const usePaymentsData = () => {
       filters.child_id = selectedChildren[0].id;
     }
 
+    if (selectedMethod && selectedMethod !== "all") filters.method = selectedMethod;
+
+    if (startMonth) {
+      filters.startDate = `${startMonth}-01`;
+    }
+    if (endMonth) {
+      const [y, m] = endMonth.split("-").map(Number);
+      const lastDay = new Date(y, m, 0).getDate();
+      filters.endDate = `${endMonth}-${String(lastDay).padStart(2, "0")}`;
+    }
+
     await fetchPayments(filters);
-  };
+  }, [page, selectedChildren, selectedMethod, startMonth, endMonth, fetchPayments]);
 
   useEffect(() => {
     loadPayments();
-  }, [page, selectedChildren]);
+  }, [loadPayments]);
 
-  // Initialize selected children from URL param if present
   useEffect(() => {
     const childParam = searchParams.get("child");
     if (childParam && children.length > 0) {
@@ -53,7 +65,7 @@ export const usePaymentsData = () => {
         setSelectedChildren([child]);
       }
     }
-  }, [searchParams, children]);
+  }, [searchParams, children, selectedChildren, setSelectedChildren]);
 
   // Fetch missing children when payments are loaded
   useEffect(() => {
@@ -89,9 +101,14 @@ export const usePaymentsData = () => {
     selectedChildren,
     selectedMethod,
     setSelectedMethod,
+    startMonth,
+    endMonth,
+    setStartMonth,
+    setEndMonth,
     isLoading: paymentsLoading,
     loadPayments,
     handleSelectChild,
     handleRemoveChild,
   };
 };
+

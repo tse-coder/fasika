@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useAdminsStore } from "@/stores/admins.store";
 import { useAuth } from "@/stores/auth.store";
-import { CreateUserRequest } from "@/types/user.types";
+import { CreateUserRequest, User } from "@/types/user.types";
 
 /**
  * Custom hook to handle admin actions (create, delete, promote)
@@ -75,7 +75,9 @@ export const useAdminActions = () => {
     }
   };
 
-  const handleEdit = async (id:string,)
+  const handleEdit = async (id:string,user: User)=>{
+
+  }
 
   const isSuperAdmin = user?.role === "ADMIN";
 

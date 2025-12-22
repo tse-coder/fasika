@@ -3,7 +3,7 @@ import { Parent, ParentQuery } from "@/types/parent.types";
 import { PaginatedResponse } from "@/types/api.types";
 import { delay, paginate } from "./utils";
 
-let parents: Parent[] = structuredClone(raw as Parent[]);
+const parents: Parent[] = structuredClone(raw as Parent[]);
 
 export const fetchParents = async (
   params: ParentQuery = {}

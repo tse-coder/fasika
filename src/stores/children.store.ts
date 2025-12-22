@@ -1,8 +1,7 @@
 import { create } from "zustand";
 import { Child, ChildState } from "@/types/child.types";
-// import { fetchChildren } from "@/api/child.api";
 import { PaginatedResponse } from "@/types/api.types";
-import { fetchChildren } from "@/mock/child.mock";
+import { mockFetchChildren } from "@/mock/api";
 
 export const useChildren = create<ChildState>((set) => ({
   children: [],
@@ -15,7 +14,7 @@ export const useChildren = create<ChildState>((set) => ({
     console.log("[Store] fetchChildren - start", filters);
     try {
       // Fetch from API
-      const res = await fetchChildren(filters);
+      const res = await mockFetchChildren(filters);
       console.log("[Store] fetchChildren - api returned", res);
 
       // API may return paginated response or plain array. Normalize both.

@@ -1,4 +1,4 @@
-import { ReactNode, useState } from "react";
+import { ReactNode, useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard,
@@ -19,7 +19,8 @@ import { useModalStore } from "@/stores/overlay.store";
 import { Button } from "@/components/ui/button";
 import { UserInfoOverlay } from "@/components/user/UserInfoOverlay";
 import { useUserProfile } from "@/hooks/useUserProfile";
-
+import { useBranchStore } from "@/stores/branch.store";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 interface DashboardLayoutProps {
   children: ReactNode;
 }
@@ -42,6 +43,11 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
   const openModal = useModalStore((state) => state.openModal);
   const closeModal = useModalStore((state) => state.closeModal);
   const { name, email, role } = useUserProfile();
+  const { currentBranch, branches, setBranch, setFromUser } = useBranchStore();
+
+  useEffect(() => {
+    setFromUser(user?.branch);
+  }, [user?.branch, setFromUser]);
 
   const handleLogout = () => {
     logout();
@@ -86,7 +92,10 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
           <nav className="flex-1 pr-4 space-y-1">
             {navItems.map((item) => {
               const isActive = location.pathname === item.path;
-              if (role === "USER" && item.path in ["/admins", "/payment-info"]) return null
+              const hideForUser =
+                role === "USER" &&
+                (item.path === "/" || item.path === "/payment-info" || item.path === "/admins");
+              if (hideForUser) return null;
               return (
                 <Link
                   key={item.path}
@@ -154,8 +163,26 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
             </h2>
           </div>
           <div className="flex items-center gap-4">
-            {/* a drop down menu to select a branch for the superadmin */}
-            
+            {role === "ADMIN" ? (
+              <Select
+                value={currentBranch}
+                onValueChange={(value) => setBranch(value)}
+              >
+                <SelectTrigger>
+                  <SelectValue/>
+                </SelectTrigger>
+                <SelectContent>{branches.map((branch) => (
+                  <SelectItem key={branch} value={branch}>
+                    {branch}
+                  </SelectItem>
+                ))}</SelectContent>
+                
+              </Select>
+            ) : (
+              <span className="text-sm font-medium text-muted-foreground">
+                Branch: {currentBranch}
+              </span>
+            )}
             <span className="text-sm text-muted-foreground">
               {new Date().toLocaleDateString("en-US", {
                 weekday: "long",

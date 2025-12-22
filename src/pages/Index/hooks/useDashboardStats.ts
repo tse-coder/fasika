@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { useChildren } from "@/stores/children.store";
 import { usePayments } from "@/stores/payment.store";
+import { useBranchStore } from "@/stores/branch.store";
 
 export interface DashboardStats {
   totalChildren: number;
@@ -16,12 +17,13 @@ export interface DashboardStats {
 export const useDashboardStats = () => {
   const { children, fetchChildren } = useChildren();
   const { payments, fetchPayments } = usePayments();
+  const { currentBranch } = useBranchStore();
 
   // Fetch children and payments on mount
   useEffect(() => {
-    fetchChildren();
-    fetchPayments({ limit: 1000 });
-  }, [fetchChildren, fetchPayments]);
+    fetchChildren({ branch: currentBranch });
+    fetchPayments({ limit: 1000, branch: currentBranch });
+  }, [fetchChildren, fetchPayments, currentBranch]);
 
   // Calculate stats for current month
   const stats: DashboardStats = (() => {

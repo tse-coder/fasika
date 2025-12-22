@@ -11,7 +11,7 @@ import {
 /**
  * Clone JSON so we can mutate it safely
  */
-let mockUsers: User[] = structuredClone(rawData as User[]);
+const mockUsers: User[] = structuredClone(rawData as User[]);
 
 /**
  * Simulate network latency

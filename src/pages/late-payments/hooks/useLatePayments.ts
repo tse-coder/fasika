@@ -20,13 +20,13 @@ export interface LatePaymentChild {
   parents?: Array<{ id: number; email: string; fname: string; lname: string }>;
 }
 
-export type LateRange = "1" | "2" | "3" | "3+";
+export type LateRange = "1" | "2" | "3" | "3+" | "expiring";
 
 /**
  * Custom hook to manage late payments data
- * Fetches children with unpaid months from January to now and filters by late range
+ * Fetches children with unpaid months from September to June and filters by late range or expiring status
  */
-export const useLatePayments = (lateRange: LateRange) => {
+export const useLatePayments = (lateRange: LateRange, showExpiring: boolean) => {
   const { fetchChildren } = useChildren();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
@@ -61,28 +61,66 @@ export const useLatePayments = (lateRange: LateRange) => {
               )
             );
 
-            // Find unpaid months from January to now
+            // Find unpaid months from September to June
             const unpaidMonths = monthsToCheck.filter(
               (month) => !paidMonthSet.has(month)
             );
 
-            if (unpaidMonths.length > 0) {
-              // Calculate months late from the oldest unpaid month
-              const oldestUnpaid = unpaidMonths[0];
-              const monthsDiff = calculateMonthsLate(oldestUnpaid);
+            if (showExpiring) {
+              // Determine next due date based on latest paid month
+              const paid = await fetchPaidMonths(child.id);
+              const paidMonths = paid || [];
 
-              // Filter by the selected late range
-              if (matchesLateRange(monthsDiff, lateRange)) {
-                lateChildren.push({
-                  id: child.id,
-                  fname: child.fname,
-                  lname: child.lname,
-                  gender: child.gender,
-                  birthdate: child.birthdate,
-                  monthlyFee: child.monthlyFee,
-                  monthsLate: monthsDiff,
-                  unpaidMonths,
-                });
+              // find latest paid month
+              const latest = paidMonths.reduce((acc, pm) => {
+                const d = new Date(pm.year, pm.month - 1, 1);
+                return !acc || d > acc ? d : acc;
+              }, null as Date | null);
+
+              let nextDue: Date | null = null;
+              if (latest) {
+                nextDue = new Date(latest.getFullYear(), latest.getMonth() + 1, 1);
+              } else if (unpaidMonths.length > 0) {
+                // if no paid months, take the first unpaid month as next due
+                nextDue = new Date(unpaidMonths[0]);
+              }
+
+              if (nextDue) {
+                const now = new Date();
+                const diffMs = nextDue.getTime() - now.getTime();
+                const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+                if (diffDays >= 0 && diffDays <= 10) {
+                  lateChildren.push({
+                    id: child.id,
+                    fname: child.fname,
+                    lname: child.lname,
+                    gender: child.gender,
+                    birthdate: child.birthdate,
+                    monthlyFee: child.monthlyFee,
+                    monthsLate: 0,
+                    unpaidMonths,
+                  });
+                }
+              }
+            } else {
+              if (unpaidMonths.length > 0) {
+                // Calculate months late from the oldest unpaid month
+                const oldestUnpaid = unpaidMonths[0];
+                const monthsDiff = calculateMonthsLate(oldestUnpaid);
+
+                // Filter by the selected late range
+                if (matchesLateRange(monthsDiff, lateRange)) {
+                  lateChildren.push({
+                    id: child.id,
+                    fname: child.fname,
+                    lname: child.lname,
+                    gender: child.gender,
+                    birthdate: child.birthdate,
+                    monthlyFee: child.monthlyFee,
+                    monthsLate: monthsDiff,
+                    unpaidMonths,
+                  });
+                }
               }
             }
           } catch (err) {
@@ -109,7 +147,7 @@ export const useLatePayments = (lateRange: LateRange) => {
     };
 
     loadLatePayments();
-  }, [lateRange, fetchChildren, toast]);
+  }, [lateRange, showExpiring, fetchChildren, toast]);
 
   return {
     latePayments,

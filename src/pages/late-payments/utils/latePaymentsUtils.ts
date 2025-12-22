@@ -3,8 +3,9 @@
  */
 
 /**
- * Get all months from January of current year up to current month
+ * Get all months from September of previous year to June of current year
  * Returns array of ISO date strings in format "YYYY-MM-01"
+ * Only considers academic year months (Sep-Jun) as payable
  */
 export const getMonthsFromJanuaryToNow = (): string[] => {
   const months: string[] = [];
@@ -12,14 +13,30 @@ export const getMonthsFromJanuaryToNow = (): string[] => {
   const currentYear = now.getFullYear();
   const currentMonth = now.getMonth(); // 0-indexed (0 = January, 11 = December)
 
-  // Start from January (month 0) of current year
-  for (let month = 0; month <= currentMonth; month++) {
-    const date = new Date(currentYear, month, 1);
+  // Start from September of previous year (academic year start)
+  const startYear = currentMonth >= 8 ? currentYear : currentYear - 1; // August is month 7
+  const startMonth = 8; // September (0-indexed as 8)
+
+  // End at June of current year (academic year end)
+  const endYear = currentYear;
+  const endMonth = 5; // June (0-indexed as 5)
+
+  let year = startYear;
+  let month = startMonth;
+
+  while (year < endYear || (year === endYear && month <= endMonth)) {
+    const date = new Date(year, month, 1);
     const monthStr = `${date.getFullYear()}-${String(month + 1).padStart(
       2,
       "0"
     )}-01`;
     months.push(monthStr);
+
+    month++;
+    if (month > 11) {
+      month = 0;
+      year++;
+    }
   }
 
   return months;

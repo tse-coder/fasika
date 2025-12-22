@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Download, Printer, X } from "lucide-react";
 import { useRef } from "react";
-// @ts-ignore - html2pdf doesn't have proper types
+// @ts-expect-error - html2pdf doesn't have proper types
 import html2pdf from "html2pdf.js";
 import { InvoiceTemplate } from "./invoiceTemplate";
 import type { Child } from "@/types/child.types";

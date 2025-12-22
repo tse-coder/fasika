@@ -1,8 +1,12 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useChildren } from "@/stores/children.store";
 import { Parent } from "@/types/parent.types";
-import { createChild } from "@/mock/child.mock";
+import { mockCreateChild } from "@/mock/api";
+import { Branch } from "@/types/api.types";
+import { Program } from "@/mock/data";
+import { useBranchStore } from "@/stores/branch.store";
+import { usePaymentInfoStore } from "@/stores/paymentInfo.store";
 
 export interface ChildFormData {
   firstName: string;
@@ -11,6 +15,10 @@ export interface ChildFormData {
   age: string;
   gender: string;
   relationship: string;
+  branch: Branch;
+  program: Program;
+  hasDiscount: boolean;
+  discountNote: string;
 }
 
 /**
@@ -19,6 +27,8 @@ export interface ChildFormData {
 export const useChildRegistration = () => {
   const { toast } = useToast();
   const { fetchChildren } = useChildren();
+  const { currentBranch, branches } = useBranchStore();
+  const { data: paymentInfo, load: loadPaymentInfo } = usePaymentInfoStore();
   const [isSubmittingChild, setIsSubmittingChild] = useState(false);
   const [childForm, setChildForm] = useState<ChildFormData>({
     firstName: "",
@@ -27,6 +37,10 @@ export const useChildRegistration = () => {
     age: "",
     gender: "",
     relationship: "guardian",
+    branch: currentBranch,
+    program: "kindergarten",
+    hasDiscount: false,
+    discountNote: "",
   });
   const [childErrors, setChildErrors] = useState<Record<string, string>>({});
 
@@ -37,7 +51,24 @@ export const useChildRegistration = () => {
     age: "",
     gender: "",
     relationship: "guardian",
+    branch: currentBranch,
+    program: "kindergarten",
+    hasDiscount: false,
+    discountNote: "",
   };
+
+  useEffect(() => {
+    setChildForm((prev) => ({ ...prev, branch: currentBranch }));
+  }, [currentBranch]);
+
+  const discountPercent = useMemo(() => {
+    const info = paymentInfo;
+    if (!info) return 0;
+    const match = info.recurring.find(
+      (r) => r.branch === childForm.branch && r.program === childForm.program
+    );
+    return match?.discountPercent || 0;
+  }, [paymentInfo, childForm.branch, childForm.program]);
 
   const validateChildForm = (): Record<string, string> => {
     const errs: Record<string, string> = {};
@@ -47,14 +78,20 @@ export const useChildRegistration = () => {
       errs.dateOfBirth = "Provide date of birth or age";
     if (!childForm.gender) errs.gender = "Gender is required";
     if (!childForm.relationship) errs.relationship = "Relationship is required";
+    if (!childForm.branch) errs.branch = "Branch is required";
+    if (!childForm.program) errs.program = "Program is required";
+    if (childForm.hasDiscount && !childForm.discountNote.trim()) {
+      errs.discountNote = "Add a note for the discount";
+    }
     return errs;
   };
 
   const handleChildChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
-    const { name, value } = e.target;
-    setChildForm((prev) => ({ ...prev, [name]: value }));
+    const { name, value, type, checked } = e.target;
+    const nextValue = type === "checkbox" ? checked : value;
+    setChildForm((prev) => ({ ...prev, [name]: nextValue }));
   };
 
   const handleSubmit = async (
@@ -78,15 +115,26 @@ export const useChildRegistration = () => {
       birthdate = new Date(year, now.getMonth(), now.getDate()).toISOString();
     }
 
+    const info = paymentInfo || (await loadPaymentInfo());
+    const recurring = info?.recurring.find(
+      (r) => r.branch === childForm.branch && r.program === childForm.program
+    );
+
     const childPayload = {
       fname: childForm.firstName,
       lname: childForm.lastName,
       gender: childForm.gender || "M",
       birthdate,
       is_active: true,
+      branch: childForm.branch,
+      program: childForm.program,
+      registerationYear: new Date().getFullYear(),
+      monthlyFee: recurring?.amount,
+      discountPercent: childForm.hasDiscount ? discountPercent : undefined,
+      discountNote: childForm.hasDiscount ? childForm.discountNote : undefined,
       parents: [
         {
-          parentId: parent.id,
+          id: parent.id,
           relationship: childForm.relationship || "guardian",
           isPrimary: true,
         },
@@ -95,7 +143,7 @@ export const useChildRegistration = () => {
 
     try {
       setIsSubmittingChild(true);
-      await createChild(childPayload as any);
+      await mockCreateChild(childPayload as any);
       await fetchChildren();
       toast({ title: "Success!", description: "Child has been registered." });
 
@@ -120,7 +168,7 @@ export const useChildRegistration = () => {
   };
 
   const resetForm = () => {
-    setChildForm(initialChildForm);
+    setChildForm({ ...initialChildForm, branch: currentBranch });
     setChildErrors({});
   };
 
@@ -136,5 +184,7 @@ export const useChildRegistration = () => {
       setChildErrors(errs);
       return errs;
     },
+    discountPercent,
+    branches,
   };
 };

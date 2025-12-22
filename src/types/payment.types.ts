@@ -9,6 +9,9 @@ export interface Payment {
   created_at: string; // ISO 8601 datetime
   updated_at: string; // ISO 8601 datetime
   monthly_records: MonthlyRecord[];
+  category?: "registration" | "monthly" | "quarterly" | string;
+  branch?: import("./api.types").Branch;
+  program?: string;
 }
 
 export interface MonthlyRecord {
@@ -31,7 +34,9 @@ export interface NewPaymentRequest {
   total_amount: number;
   months: string[]; // Array of ISO date strings (YYYY-MM-DD format)
   method: string; // "Cash", "CBE", "Dashen Bank"
+
   notes?: string; // Optional, max 255 characters
+  category: string;
 }
 
 export interface CreatePaymentResponse {

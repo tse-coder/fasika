@@ -1,5 +1,18 @@
-import { LoginRequest, LoginResponse } from "@/api/auth.api";
 import users from "./data/admin.json"; // <-- your existing file
+
+// Local definitions to avoid importing from the real API layer
+export interface LoginRequest {
+  email: string;
+  password: string;
+}
+
+export interface LoginResponse {
+  access_token: string;
+  name: string;
+  email: string;
+  sub: string;
+  role: "ADMIN" | "USER";
+}
 
 
 /**
@@ -48,4 +61,31 @@ export const login = async (
     sub: user.sub,
     role: user.role
   };
+};
+
+/**
+ * Mock password reset
+ */
+export const mockResetPassword = async (
+  userId: string,
+  data: { newPassword: string }
+): Promise<void> => {
+  console.log("[MOCK API] resetPassword - start", userId);
+
+  // Simulate network latency
+  await new Promise((res) => setTimeout(res, 300));
+
+  const userIndex = (users as any[]).findIndex(
+    (u) => u.id === userId && u.isDeleted === false
+  );
+
+  if (userIndex === -1) {
+    console.error("[MOCK API] resetPassword - user not found");
+    throw new Error("User not found");
+  }
+
+  // Update password in mock data
+  (users as any[])[userIndex].password = data.newPassword;
+
+  console.log("[MOCK API] resetPassword - success", userId);
 };

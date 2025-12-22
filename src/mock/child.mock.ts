@@ -3,7 +3,7 @@ import { Child, ChildQuery } from "@/types/child.types";
 import { PaginatedResponse } from "@/types/api.types";
 import { delay } from "./utils";
 
-let children: Child[] = structuredClone(raw as Child[]);
+const children: Child[] = structuredClone(raw as Child[]);
 
 /**
  * Pagination helper (matches your PaginatedResponse)

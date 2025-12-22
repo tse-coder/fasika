@@ -37,7 +37,9 @@ export function ParentStep({
     timer.current = window.setTimeout(() => {
       try {
         onSearch(search.trim());
-      } catch (e) {}
+      } catch (e) {
+        console.error("Search failed:", e);
+      }
     }, 500);
     return () => {
       if (timer.current) window.clearTimeout(timer.current);

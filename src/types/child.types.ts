@@ -1,4 +1,5 @@
 import { Branch, ChildParentLink } from "./api.types";
+import { Program } from "@/mock/data";
 
 export interface Child {
   id: number;
@@ -10,7 +11,11 @@ export interface Child {
   monthlyFee?: number;
   parents: ChildParentLink[];
   branch: Branch;
-  registerationYear: number;
+  program?: Program;
+  registrationPaid?: boolean;
+  discountPercent?: number;
+  discountNote?: string;
+  registerationYear?: number;
 }
 export interface ChildQuery {
   query?: string;

@@ -13,7 +13,7 @@ import NotFound from "./pages/NotFound";
 import { OverlayModal } from "./components/overlay";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import Admins from "./pages/admins/admints";
-import PaymentInfo from "./pages/payment-info/paymentInfo";
+import PaymentInfo from "./pages/payment-info/PaymentInfo";
 
 const queryClient = new QueryClient();
 

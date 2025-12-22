@@ -63,6 +63,8 @@ export default function RegisterSequential() {
               form={childRegistration.childForm}
               onChange={childRegistration.handleChildChange}
               errors={childRegistration.childErrors}
+              branches={childRegistration.branches}
+              discountPercent={childRegistration.discountPercent}
             />
             <div className="w-full flex">
               <Button

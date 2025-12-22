@@ -1,8 +1,8 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-// import { login as loginAPI } from "@/api/auth.api";
 import { setAuthToken } from "@/api/http";
-import { login } from "@/mock/auth.mock";
+import { mockLogin } from "@/mock/api";
+import { useBranchStore } from "./branch.store";
 
 interface AuthState {
   isAuthenticated: boolean;
@@ -12,6 +12,7 @@ interface AuthState {
     email: string;
     name: string;
     role: "ADMIN" | "USER";
+    branch?: string;
   } | null;
   login: (email: string, password: string) => Promise<boolean>;
   logout: () => void;
@@ -42,29 +43,22 @@ export const useAuth = create<AuthState>()(
 
       login: async (email: string, password: string) => {
         try {
-          const response = await login({ email, password });
-          
+          const response = await mockLogin({ email, password });
           const token = response.access_token;
+          const user = response.user;
 
-          // Decode token to get user info
-          // const decoded = decodeToken(token); 
-          // if (!decoded) { 
-          //   return false;
-          // }
-
-          // Set token in axios headers
           setAuthToken(token);
+          useBranchStore.getState().setFromUser(user.branch);
 
-          // For now, we'll use email as name until we can fetch full user profile
-          // In a real app, you might want to fetch user details after login
           set({
             isAuthenticated: true,
             token,
             user: {
-              id: response.sub,
-              email,
-              name: response.name, // Temporary: use email prefix as name
-              role: response.role,
+              id: user.id,
+              email: user.email,
+              name: user.name,
+              role: user.role,
+              branch: user.branch,
             },
           });
           return true;

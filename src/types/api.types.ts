@@ -11,4 +11,12 @@ export interface ChildParentLink {
   isPrimary: boolean;
 }
 
-export type Branch = "bulbula" | "semit" | "hayat" | "megenagna";
+export type Branch =
+  | "Bulbula"
+  | "Hayat"
+  | "Semit"
+  | "Megenagna"
+  | "bulbula"
+  | "hayat"
+  | "semit"
+  | "megenagna";

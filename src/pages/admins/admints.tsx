@@ -7,6 +7,7 @@ import { useAuth } from "@/stores/auth.store";
 import { AdminsHeader } from "./components/AdminsHeader";
 import { AdminsList } from "./components/AdminsList";
 import { AdminCreationForm } from "./components/AdminCreationForm";
+import { Navigate } from "react-router-dom";
 
 /**
  * Main Admins page component
@@ -27,6 +28,10 @@ function Admins() {
   const openModal = useModalStore((state) => state.openModal);
   const closeModal = useModalStore((state) => state.closeModal);
   const [showCreateForm, setShowCreateForm] = useState(false);
+
+  if (user?.role !== "ADMIN") {
+    return <Navigate to="/payments" replace />;
+  }
 
   const handleAddAdmin = () => {
     setShowCreateForm(true);

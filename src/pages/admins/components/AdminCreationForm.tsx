@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/select";
 import { LoaderIcon } from "@/components/ui/skeleton-card";
 import { CreateUserRequest } from "@/types/user.types";
+import { useBranchStore } from "@/stores/branch.store";
 
 interface AdminCreationFormProps {
   onSubmit: (data: CreateUserRequest & { makeAdmin: boolean }) => Promise<void>;
@@ -27,15 +28,20 @@ export const AdminCreationForm = ({
   onCancel,
   isLoading = false,
 }: AdminCreationFormProps) => {
+  const { currentBranch, branches } = useBranchStore();
   const [formData, setFormData] = useState({
     name: "",
     email: "",
     phone: "",
     password: "",
     makeAdmin: false,
-    branch: ""
+    branch: currentBranch,
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    setFormData((prev) => ({ ...prev, branch: currentBranch }));
+  }, [currentBranch]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -73,6 +79,7 @@ export const AdminCreationForm = ({
       phone: formData.phone.trim(),
       password: formData.password,
       makeAdmin: formData.makeAdmin,
+      branch: formData.branch as any,
     };
 
     await onSubmit(submitData);
@@ -149,7 +156,7 @@ export const AdminCreationForm = ({
       <div className="space-y-2">
         <Label htmlFor="makeAdmin">Select branch</Label>
         <Select
-          value={formData.branch ? formData.branch : "hayat"}
+          value={formData.branch}
           onValueChange={(value) =>
             setFormData({ ...formData, branch: value })
           }
@@ -159,10 +166,11 @@ export const AdminCreationForm = ({
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="hayat">Hayat </SelectItem>
-            <SelectItem value="bulbula">Bulbula</SelectItem>
-            <SelectItem value="semit">Semit</SelectItem>
-            <SelectItem value="megenagna">Megenagna</SelectItem>
+            {branches.map((b) => (
+              <SelectItem key={b} value={b}>
+                {b}
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
       </div>
