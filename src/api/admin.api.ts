@@ -90,3 +90,22 @@ export const changeUserRole = async (
     throw err;
   }
 };
+
+/**
+ * Update user information (name, email, branch, role)
+ * PUT /users/:id
+ */
+export const updateUser = async (
+  id: string,
+  data: { name?: string; email?: string; branch?: string; role?: "ADMIN" | "USER" }
+): Promise<User> => {
+  console.log("[API] updateUser - start", id, data);
+  try {
+    const res = await apiPut<User>(`/api/users/${id}`, data);
+    console.log("[API] updateUser - success", res);
+    return res;
+  } catch (err) {
+    console.error("[API] updateUser - error", err);
+    throw err;
+  }
+};

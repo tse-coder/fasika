@@ -132,3 +132,24 @@ export const fetchUnpaidChildren = async (params: {
     throw err;
   }
 };
+
+/**
+ * Export payments as CSV
+ * GET /api/payments/export
+ */
+export const exportPayments = async (
+  params: Record<string, any> = {}
+): Promise<{ filename: string; csv: string }> => {
+  console.log("[API] exportPayments - start", params);
+  try {
+    const res = await apiGet<{ filename: string; csv: string }>(
+      "/api/payments/export",
+      params
+    );
+    console.log("[API] exportPayments - success");
+    return res;
+  } catch (err) {
+    console.error("[API] exportPayments - error", err);
+    throw err;
+  }
+};
