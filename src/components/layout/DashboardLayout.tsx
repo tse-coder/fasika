@@ -154,6 +154,8 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
             </h2>
           </div>
           <div className="flex items-center gap-4">
+            {/* a drop down menu to select a branch for the superadmin */}
+            
             <span className="text-sm text-muted-foreground">
               {new Date().toLocaleDateString("en-US", {
                 weekday: "long",

@@ -33,6 +33,7 @@ export const AdminCreationForm = ({
     phone: "",
     password: "",
     makeAdmin: false,
+    branch: ""
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -145,6 +146,26 @@ export const AdminCreationForm = ({
         </p>
       </div>
 
+      <div className="space-y-2">
+        <Label htmlFor="makeAdmin">Select branch</Label>
+        <Select
+          value={formData.branch ? formData.branch : "hayat"}
+          onValueChange={(value) =>
+            setFormData({ ...formData, branch: value })
+          }
+          disabled={isLoading}
+        >
+          <SelectTrigger id="makeAdmin">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="hayat">Hayat </SelectItem>
+            <SelectItem value="bulbula">Bulbula</SelectItem>
+            <SelectItem value="semit">Semit</SelectItem>
+            <SelectItem value="megenagna">Megenagna</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
       <div className="space-y-2">
         <Label htmlFor="makeAdmin">Grant Admin Privileges</Label>
         <Select

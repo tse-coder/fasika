@@ -49,6 +49,7 @@ export const createUser = async (
     createdAt: now,
     updatedAt: now,
     password: `hashed_${data.password}`, // mock hash
+    branch: data.branch
   };
 
   mockUsers.push(newUser);

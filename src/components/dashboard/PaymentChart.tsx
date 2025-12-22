@@ -23,7 +23,7 @@ export const PaymentChart = () => {
     const data: { month: string; amount: number }[] = [];
 
     if (timeRange === "month") {
-      // ✅ 10 evenly spaced buckets in current month
+      // 10 evenly spaced buckets in current month
       const start = new Date(now.getFullYear(), now.getMonth(), 1);
       const daysInMonth = new Date(
         now.getFullYear(),

@@ -24,6 +24,7 @@ export interface CreateUserRequest {
   phone: string;
   dob?: string; // ISO 8601 date format (YYYY-MM-DD)
   password: string; // Minimum 8 characters
+  branch: Branch;
 }
 
 export interface ResetPasswordRequest {

@@ -20,6 +20,8 @@ function Admins() {
     isDeleting,
     isCreating,
     isSuperAdmin,
+    isEditing,
+    handleEdit,
   } = useAdminActions();
   const { user } = useAuth();
   const openModal = useModalStore((state) => state.openModal);
@@ -63,6 +65,9 @@ function Admins() {
           onDelete={handleDelete}
           isDeleting={isDeleting !== null}
           canDelete={isSuperAdmin}
+          canEdit={isSuperAdmin}
+          isEditing={isEditing}
+          onEdit={handleEdit}
         />
       </div>
     </DashboardLayout>

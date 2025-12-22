@@ -13,6 +13,7 @@ const userToAdmin = (user: User): Admin => ({
   role: user.role,
   createdAt: user.createdAt,
   updatedAt: user.updatedAt,
+  branch: user.branch
 });
 
 export const useAdminsStore = create<AdminState>((set) => ({

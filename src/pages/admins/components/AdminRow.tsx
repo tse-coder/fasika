@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Trash2 } from "lucide-react";
+import { Pen, PenLine, Trash2 } from "lucide-react";
 import { Admin } from "@/types/admins.types";
 import { LoaderIcon } from "@/components/ui/skeleton-card";
 
@@ -9,6 +9,9 @@ interface AdminRowProps {
   onDelete: (id: string) => void;
   isDeleting: boolean;
   canDelete: boolean;
+  onEdit: (id: string)=> void;
+  isEditing: boolean;
+  canEdit: boolean
 }
 
 /**
@@ -19,9 +22,14 @@ export const AdminRow = ({
   onDelete,
   isDeleting,
   canDelete,
+  onEdit,
+  isEditing,
+  canEdit
 }: AdminRowProps) => {
   const canDeleteThisAdmin = canDelete;
   const isCurrentlyDeleting = isDeleting;
+  const isCurrentlyEditing = isEditing;
+  const canEditThisAdmin = canDelete
 
   return (
     <tr className="border-b border-border/50 hover:bg-muted/30 transition-colors">
@@ -39,6 +47,11 @@ export const AdminRow = ({
         </div>
       </td>
       <td className="py-4 px-4">
+        <Badge variant="outline">
+          {admin.branch}
+        </Badge>
+      </td>
+      <td className="py-4 px-4">
         <Badge variant={admin.role === "ADMIN" ? "default" : "secondary"}>
           {admin.role === "ADMIN" ? "Admin" : "User"}
         </Badge>
@@ -47,6 +60,20 @@ export const AdminRow = ({
         {new Date(admin.createdAt).toLocaleDateString()}
       </td>
       <td className="py-4 px-4">
+        {canEditThisAdmin && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => onEdit(admin.id)}
+            disabled={isCurrentlyEditing}
+          >
+            {isCurrentlyEditing ? (
+              <LoaderIcon className="w-4 h-4" />
+            ) : (
+              <PenLine className="w-4 h-4 " />
+            )}
+          </Button>
+        )}
         {canDeleteThisAdmin && (
           <Button
             variant="ghost"

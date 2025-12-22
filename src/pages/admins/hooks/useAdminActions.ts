@@ -75,6 +75,8 @@ export const useAdminActions = () => {
     }
   };
 
+  const handleEdit = async (id:string,)
+
   const isSuperAdmin = user?.role === "ADMIN";
 
   return {

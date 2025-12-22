@@ -1,4 +1,7 @@
 // Legacy type - kept for backward compatibility
+
+import { Branch } from "./api.types";
+
 // Use User type from @/types/user.types instead
 export type Admin = {
   id: string; // UUID
@@ -8,6 +11,7 @@ export type Admin = {
   role: "ADMIN" | "USER";
   createdAt: string;
   updatedAt: string;
+  branch: Branch;
 };
 
 export interface AdminState {

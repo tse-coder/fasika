@@ -10,6 +10,9 @@ interface AdminsListProps {
   onDelete: (id: string) => void;
   isDeleting: boolean;
   canDelete: boolean;
+  onEdit: (id: string) => void;
+  canEdit: boolean;
+  isEditing: boolean
 }
 
 /**
@@ -22,6 +25,9 @@ export const AdminsList = ({
   onDelete,
   isDeleting,
   canDelete,
+  onEdit,
+  canEdit,
+  isEditing
 }: AdminsListProps) => {
   if (isLoading) {
     return (
@@ -54,6 +60,9 @@ export const AdminsList = ({
                 User
               </th>
               <th className="text-left py-4 px-4 font-semibold text-foreground">
+                Branch
+              </th>
+              <th className="text-left py-4 px-4 font-semibold text-foreground">
                 Role
               </th>
               <th className="text-left py-4 px-4 font-semibold text-foreground">
@@ -72,6 +81,9 @@ export const AdminsList = ({
                 onDelete={onDelete}
                 isDeleting={isDeleting}
                 canDelete={canDelete}
+                canEdit={canEdit}
+                isEditing={isEditing}
+                onEdit={onEdit}
               />
             ))}
           </tbody>
