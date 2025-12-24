@@ -27,7 +27,7 @@ export function ParentStep({
   const filtered = (parents || []).filter(
     (p: Parent) =>
       `${p.fname} ${p.lname}`.toLowerCase().includes(search.toLowerCase()) ||
-      (p.phone_number || "").includes(search)
+      (p.phone || "").includes(search)
   );
 
   // Debounce search input and call onSearch when user stops typing
@@ -113,7 +113,7 @@ export function ParentStep({
                     {parent.fname} {parent.lname}
                   </div>
                   <div className="text-sm text-muted-foreground">
-                    {parent.email} &#9679; {parent.phone_number}
+                    {parent.email} - {parent.phone}
                   </div>
                 </div>
               ))}

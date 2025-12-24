@@ -2,7 +2,8 @@ import { useModalStore } from "@/stores/overlay.store";
 import { Child } from "@/types/child.types";
 import InfoOverlay from "../sections/infoOverlay";
 import { LoaderIcon } from "@/components/ui/skeleton-card";
-import { fetchParentById } from "@/mock/parent.mock";
+import { fetchParentById } from "@/api/parent.api";
+// import { fetchParentById } from "@/mock/parent.mock";
 
 /**
  * Custom hook to handle child info overlay display
@@ -30,8 +31,9 @@ export const useChildInfo = () => {
       const parents = (
         await Promise.all(parentIds.map((id) => fetchParentById(id)))
       ).filter(Boolean);
-
+      
       openModal(<InfoOverlay child={child} parentInfo={parents} />);
+      console.log("[Children] Parent info loaded", parents);
     } catch (err) {
       console.error("[Children] Failed to load parent info", err);
       openModal(

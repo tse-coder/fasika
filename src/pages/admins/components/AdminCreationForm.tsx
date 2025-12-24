@@ -12,6 +12,7 @@ import {
 import { LoaderIcon } from "@/components/ui/skeleton-card";
 import { CreateUserRequest } from "@/types/user.types";
 import { useBranchStore } from "@/stores/branch.store";
+import { Branch } from "@/types/api.types";
 
 interface AdminCreationFormProps {
   onSubmit: (data: CreateUserRequest & { makeAdmin: boolean }) => Promise<void>;
@@ -158,7 +159,7 @@ export const AdminCreationForm = ({
         <Select
           value={formData.branch}
           onValueChange={(value) =>
-            setFormData({ ...formData, branch: value })
+            setFormData({ ...formData, branch: value as Branch })
           }
           disabled={isLoading}
         >

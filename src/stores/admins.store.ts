@@ -1,14 +1,15 @@
 import { create } from "zustand";
 import { Admin, AdminState } from "@/types/admins.types";
 import { User, CreateUserRequest } from "@/types/user.types";
-import {
-  mockChangeRole,
-  mockCreateUser,
-  mockDeleteUser,
-  mockFetchUsers,
-  mockResetPassword,
-  mockUpdateUser,
-} from "@/mock/api";
+import { changeUserRole, createUser, deleteUser, fetchUsers, resetUserPassword, updateUser } from "@/api/admin.api";
+// import {
+//   mockChangeRole,
+//   mockCreateUser,
+//   mockDeleteUser,
+//   mockFetchUsers,
+//   mockResetPassword,
+//   mockUpdateUser,
+// } from "@/mock/api";
 
 // Convert User to Admin (for backward compatibility)
 const userToAdmin = (user: User): Admin => ({
@@ -31,7 +32,7 @@ export const useAdminsStore = create<AdminState>((set) => ({
     set({ isLoading: true, error: null });
     console.log("[Store] fetchAdmins - start");
     try {
-      const users = await mockFetchUsers();
+      const users = await fetchUsers();
       const admins = users.map(userToAdmin);
       console.log("[Store] fetchAdmins - success", admins);
       set({ admins, isLoading: false });
@@ -47,7 +48,7 @@ export const useAdminsStore = create<AdminState>((set) => ({
     set({ isLoading: true, error: null });
     console.log("[Store] createAdmin - start", data);
     try {
-      const newUser = await mockCreateUser(data);
+      const newUser = await createUser(data);
       const newAdmin = userToAdmin(newUser);
       set((state) => ({
         admins: [...state.admins, newAdmin],
@@ -66,7 +67,7 @@ export const useAdminsStore = create<AdminState>((set) => ({
     set({ isLoading: true, error: null });
     console.log("[Store] deleteAdmin - start", id);
     try {
-      await mockDeleteUser(id);
+      await deleteUser(id);
       set((state) => ({
         admins: state.admins.filter((admin) => admin.id !== id),
         isLoading: false,
@@ -83,7 +84,7 @@ export const useAdminsStore = create<AdminState>((set) => ({
     set({ isLoading: true, error: null });
     console.log("[Store] resetPassword - start", id);
     try {
-      const updatedUser = await mockResetPassword(id, { newPassword });
+      const updatedUser = await resetUserPassword(id, { newPassword });
       const updatedAdmin = userToAdmin(updatedUser);
       set((state) => ({
         admins: state.admins.map((admin) =>
@@ -104,7 +105,7 @@ export const useAdminsStore = create<AdminState>((set) => ({
     set({ isLoading: true, error: null });
     console.log("[Store] changeRole - start", id, action);
     try {
-      const updatedUser = await mockChangeRole(id, action);
+      const updatedUser = await changeUserRole(id, { action });
       const updatedAdmin = userToAdmin(updatedUser);
       set((state) => ({
         admins: state.admins.map((admin) =>
@@ -125,7 +126,7 @@ export const useAdminsStore = create<AdminState>((set) => ({
     set({ isLoading: true, error: null });
     console.log("[Store] updateAdmin - start", id, data);
     try {
-      const updatedUser = await mockUpdateUser(id, data);
+      const updatedUser = await updateUser(id, data);
       const updatedAdmin = userToAdmin(updatedUser);
       set((state) => ({
         admins: state.admins.map((admin) =>

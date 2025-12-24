@@ -1,8 +1,9 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { setAuthToken } from "@/api/http";
-import { mockLogin } from "@/mock/api";
+// import { mockLogin } from "@/mock/api";
 import { useBranchStore } from "./branch.store";
+import { login } from "@/api/auth.api";
 
 interface AuthState {
   isAuthenticated: boolean;
@@ -43,9 +44,9 @@ export const useAuth = create<AuthState>()(
 
       login: async (email: string, password: string) => {
         try {
-          const response = await mockLogin({ email, password });
+          const response = await login({ email, password });
           const token = response.access_token;
-          const user = response.user;
+          const user = response.user
 
           setAuthToken(token);
           useBranchStore.getState().setFromUser(user.branch);

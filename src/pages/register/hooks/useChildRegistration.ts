@@ -2,11 +2,13 @@ import { useEffect, useMemo, useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useChildren } from "@/stores/children.store";
 import { Parent } from "@/types/parent.types";
-import { createChild } from "@/mock/api";
+// import { createChild } from "@/mock/api";
 import { Branch } from "@/types/api.types";
 import { Program } from "@/mock/data";
 import { useBranchStore } from "@/stores/branch.store";
 import { usePaymentInfoStore } from "@/stores/paymentInfo.store";
+import { createChild } from "@/api/child.api";
+import { Child } from "@/types/child.types";
 
 export interface ChildFormData {
   firstName: string;
@@ -136,25 +138,17 @@ export const useChildRegistration = () => {
       lname: childForm.lastName,
       gender: childForm.gender || "M",
       birthdate,
-      is_active: true,
       branch: childForm.branch,
       program: childForm.program,
-      registerationYear: new Date().getFullYear(),
       monthlyFee: recurring?.amount,
       discountPercent: childForm.hasDiscount ? discountPercent : undefined,
       discountNote: childForm.hasDiscount ? childForm.discountNote : undefined,
-      parents: [
-        {
-          id: selectedParent,
-          relationship: childForm.relationship || "guardian",
-          isPrimary: true,
-        },
-      ],
+      parent_ids: [selectedParent],
     } as any;
 
     try {
       setIsSubmittingChild(true);
-      await createChild(childPayload as any);
+      await createChild(childPayload as Omit<Child, "id">);
       await fetchChildren();
       toast({ title: "Success!", description: "Child has been registered." });
 
@@ -179,7 +173,7 @@ export const useChildRegistration = () => {
   };
 
   const resetForm = () => {
-    setChildForm({ ...initialChildForm, branch: currentBranch });
+    setChildForm({ ...initialChildForm});
     setChildErrors({});
   };
 

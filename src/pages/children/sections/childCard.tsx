@@ -11,7 +11,8 @@ import { Child } from "@/types/child.types";
 import { MoreVertical } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
-import { updateChild } from "@/mock/child.mock";
+import { updateChild } from "@/api/child.api";
+// import { updateChild } from "@/mock/child.mock";
 
 type ChildCardProps = {
   child: Child;

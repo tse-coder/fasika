@@ -37,8 +37,6 @@ CREATE TABLE parents (
     phone VARCHAR(20),
     email VARCHAR(255),
     address TEXT,
-    occupation VARCHAR(100),
-    relationship VARCHAR(50) DEFAULT 'guardian',
     branch VARCHAR(50) NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
@@ -102,7 +100,6 @@ CREATE TABLE payments (
     method VARCHAR(50) NOT NULL CHECK (method IN ('Cash', 'CBE', 'Dashen Bank')),
     notes TEXT,
     category VARCHAR(50) DEFAULT 'tuition',
-    program VARCHAR(50),
     branch VARCHAR(50) NOT NULL,
     created_by INTEGER REFERENCES users(id),
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,

@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
-import { useParents } from "@/stores/parent.store";
 import { Parent } from "@/types/parent.types";
-import { registerParent } from "@/mock/parent.mock";
+import { registerParent } from "@/api/parent.api";
+import { useBranchStore } from "@/stores/branch.store";
+// import { registerParent } from "@/mock/parent.mock";
 
 /**
  * Custom hook to handle parent creation
@@ -13,7 +14,7 @@ export const useParentCreation = (
 ) => {
   const { toast } = useToast();
   const [isSavingParent, setIsSavingParent] = useState(false);
-
+  const {currentBranch} = useBranchStore()
   const handleAddParent = async (data: {
     fname: string;
     lname: string;
@@ -31,20 +32,20 @@ export const useParentCreation = (
       fname,
       lname,
       gender: data.gender,
-      phone_number: data.phone,
+      phone: data.phone,
       email: data.email || "",
-      is_active: true,
+      branch: currentBranch
     };
 
     try {
-      const newParent = await registerParent(payload as any);
+      const newParent = await registerParent(payload as Omit<Parent, "id"|"created_at"| "updated_at"| "is_active">);
       const refreshed = await refreshParents();
 
       // Try to find the parent in the refreshed list
       const createdId =
         (newParent && (newParent as any).id) ||
         (newParent && (newParent as any).data && (newParent as any).data.id) ||
-        refreshed.find((p) => p.phone_number === payload.phone_number)?.id ||
+        refreshed.find((p) => p.phone === payload.phone)?.id ||
         refreshed[0]?.id ||
         null;
 

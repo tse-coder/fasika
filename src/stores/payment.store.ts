@@ -12,7 +12,8 @@ import {
   deletePayment,
   fetchPaidMonths,
   fetchPayments,
-} from "@/mock/api";
+// } from "@/mock/api";
+} from "@/api/payment.api";
 export const usePayments = create<PaymentState>((set, get) => ({
   payments: [],
   pagination: {

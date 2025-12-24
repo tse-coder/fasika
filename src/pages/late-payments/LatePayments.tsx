@@ -6,7 +6,8 @@ import { useLatePayments, type LateRange } from "./hooks/useLatePayments";
 import { useNotificationHandler } from "./hooks/useNotificationHandler";
 import { LatePaymentsHeader } from "./components/LatePaymentsHeader";
 import { LatePaymentsTable } from "./components/LatePaymentsTable";
-import { exportPayments } from "@/mock/api";
+import { exportPayments } from "@/api/payment.api";
+// import { exportPayments } from "@/mock/api";
 
 /**
  * Main component for the Late Payments page

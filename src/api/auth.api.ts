@@ -1,3 +1,4 @@
+import { User } from "@/types/user.types";
 import { apiPost } from "./http";
 
 export interface LoginRequest {
@@ -7,10 +8,7 @@ export interface LoginRequest {
 
 export interface LoginResponse {
   access_token: string;
-  name: string;
-  email: string;
-  sub: string;
-  role: "ADMIN" | "USER";
+  user: User
 }
 
 /**

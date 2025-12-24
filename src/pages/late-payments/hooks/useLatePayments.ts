@@ -7,7 +7,8 @@ import {
   calculateMonthsLate,
   matchesLateRange,
 } from "../utils/latePaymentsUtils";
-import { fetchPaidMonths } from "@/mock/payment.mock";
+import { fetchPaidMonths } from "@/api/payment.api";
+// import { fetchPaidMonths } from "@/mock/payment.mock";
 
 export interface LatePaymentChild {
   id: number;
@@ -111,7 +112,7 @@ export const useLatePayments = (lateRange: LateRange, showExpiring: boolean) => 
                 const monthsDiff = calculateMonthsLate(oldestUnpaid);
 
                 // Filter by the selected late range
-                if (matchesLateRange(monthsDiff, lateRange)) {
+                if (matchesLateRange(monthsDiff, lateRange as "1" | "2" | "3" | "3+")) {
                   lateChildren.push({
                     id: child.id,
                     fname: child.fname,

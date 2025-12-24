@@ -1,7 +1,8 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import { getPaymentInfo, updatePaymentInfo } from "@/mock/api";
+// import { getPaymentInfo, updatePaymentInfo } from "@/mock/api";
 import { PaymentInfoData } from "@/mock/data";
+import { getPaymentInfo, updatePaymentInfo } from "@/api/payment-info.api";
 
 interface PaymentInfoState {
   data: PaymentInfoData | null;

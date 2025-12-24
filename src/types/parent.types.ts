@@ -3,7 +3,7 @@ export interface Parent {
   fname: string;
   lname: string;
   gender: "M" | "F";
-  phone_number: string;
+  phone: string;
   email: string;
   is_active: boolean;
   created_at: string;

@@ -1,7 +1,8 @@
 import { create } from "zustand";
 import { Child, ChildState } from "@/types/child.types";
 import { PaginatedResponse } from "@/types/api.types";
-import { fetchChildren } from "@/mock/api";
+import { fetchChildren } from "@/api/child.api";
+// import { fetchChildren } from "@/mock/api";
 
 export const useChildren = create<ChildState>((set) => ({
   children: [],

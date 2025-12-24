@@ -16,7 +16,6 @@ import {
 import { Input } from "@/components/ui/input";
 import { Plus, Search, Filter, File, Calendar } from "lucide-react";
 import { useCallback, useState } from "react";
-import { exportPayments } from "@/mock/api";
 import { StudentSearch } from "./studentSearch";
 import { PaymentForm } from "./paymentForm";
 import type { Child } from "@/types/child.types";

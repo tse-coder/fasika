@@ -28,7 +28,7 @@ export const fetchParentById = async (id: number) => {
 };
 
 export const registerParent = async (
-  parentData: Omit<Parent, "id" | "created_at" | "updated_at">
+  parentData: Omit<Parent, "id" | "created_at" | "updated_at" | "is_active">
 ) => {
   console.log("[API] registerParent - start", parentData);
   try {

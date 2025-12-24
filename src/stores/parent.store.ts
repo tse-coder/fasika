@@ -1,5 +1,6 @@
 
-import { fetchParents } from "@/mock/api";
+// import { fetchParents } from "@/mock/api";
+import { fetchParents } from "@/api/parent.api";
 import { PaginatedResponse } from "@/types/api.types";
 import { Parent, parentState } from "@/types/parent.types";
 import { create } from "zustand";
