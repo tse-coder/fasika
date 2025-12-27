@@ -17,6 +17,9 @@ export type User = {
   updatedAt: string; // ISO 8601 datetime
   password?: string; // Only included in some responses (hashed)
 };
+export type UserResponse = {
+  data: User[];
+};
 
 export interface CreateUserRequest {
   name: string;

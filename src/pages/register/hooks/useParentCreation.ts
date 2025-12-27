@@ -32,7 +32,7 @@ export const useParentCreation = (
       fname,
       lname,
       gender: data.gender,
-      phone: data.phone,
+      phone_number: data.phone,
       email: data.email || "",
       branch: currentBranch
     };
@@ -45,7 +45,7 @@ export const useParentCreation = (
       const createdId =
         (newParent && (newParent as any).id) ||
         (newParent && (newParent as any).data && (newParent as any).data.id) ||
-        refreshed.find((p) => p.phone === payload.phone)?.id ||
+        refreshed.find((p) => p.phone_number === payload.phone_number)?.id ||
         refreshed[0]?.id ||
         null;
 

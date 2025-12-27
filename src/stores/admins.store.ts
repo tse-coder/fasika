@@ -33,7 +33,8 @@ export const useAdminsStore = create<AdminState>((set) => ({
     console.log("[Store] fetchAdmins - start");
     try {
       const users = await fetchUsers();
-      const admins = users.map(userToAdmin);
+      console.log(users)
+      const admins = users.data.map(userToAdmin);
       console.log("[Store] fetchAdmins - success", admins);
       set({ admins, isLoading: false });
       return admins;

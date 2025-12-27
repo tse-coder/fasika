@@ -28,7 +28,7 @@ export const useRegistrationFlow = () => {
   };
 
   const parentCreation = useParentCreation((parentId) => {
-    parentSelection.setSelectedParent(parentId);
+    parentSelection.setSelectedParent(Number(parentId));
     setCurrentStep("child-info");
   }, refreshParents);
 

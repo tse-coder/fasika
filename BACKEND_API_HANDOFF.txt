@@ -1,0 +1,402 @@
+FASIKA BACKEND HANDOFF (for Frontend)
+
+1) Tech stack / runtime
+- Framework: NestJS
+- DB access: Prisma ORM (PostgreSQL)
+- Global API prefix: /api
+- Default port: 3000 (process.env.PORT overrides)
+- CORS: enabled with { origin: true, credentials: true } (reflects request origin; allows cookies/credentials)
+- Validation: global ValidationPipe
+  - whitelist: true (strips unknown properties)
+  - forbidNonWhitelisted: true (rejects requests containing unknown properties with 400)
+
+2) Base URL
+- Local: http://localhost:3000/api
+- All paths below are relative to /api
+
+3) Authentication / Authorization
+3.1 JWT
+- Login returns an access token; client must send it on protected endpoints:
+  - Header: Authorization: Bearer <access_token>
+- Token payload:
+  - sub: user.id (string)
+  - role: user.role
+- Expiration: 1 day
+- NOTE: JWT secret is hardcoded as "super-secret-key" in the code.
+
+3.2 Roles
+- Roles used: ADMIN, USER
+- RolesGuard checks handler/class metadata set by @Roles(...)
+
+3.3 Branch-based access (BranchAccessGuard)
+Applies on:
+- /child/*
+- /payments/*
+
+Behavior:
+- Non-ADMIN users:
+  - If request includes a branch identifier (query or params: branch or branch_id) and it differs from the user’s branch => 403
+  - request.branchFilter is set to user.branch
+- ADMIN users:
+  - If request specifies branch/branch_id, request.branchFilter is set to that branch
+  - If not specified, request.branchFilter is set to null (meaning “all branches”)
+
+Important implementation detail:
+- Some endpoints also accept a branch query parameter and apply it in the service layer.
+
+4) Data model overview (Prisma)
+Core tables you will see in API responses:
+- User
+  - id, name, email, phone?, dob?, role, branch, isDeleted, deletedAt, createdAt, updatedAt
+- Parents
+  - id, fname, lname, gender, phone?, email?, address?, occupation?, branch, created_at, updated_at
+- Children
+  - id, fname, lname, gender, birthdate, program, branch, monthly_fee, is_active,
+    has_discount, discount_percent?, discount_note?, created_at, updated_at
+- ChildrenParents (join table)
+  - child_id, parent_id, relationship, is_primary
+- Payments
+  - id, child_id, total_amount, payment_date, method, notes?, category, branch, created_by?, created_at, updated_at
+- MonthlyPaymentRecords
+  - id, payment_id, child_id, month, amount, created_at, updated_at
+  - unique(child_id, month)
+- PaymentInfo
+  - registration (JSON), recurring (JSON), discounted (JSON)
+
+5) Endpoints
+
+5.1 Health / root
+- GET /
+  - Path: /api
+  - Auth: none
+  - Response: string ("Hello World" style)
+
+5.2 Auth
+- POST /auth/login
+  - Path: /api/auth/login
+  - Auth: none
+  - Body (LoginDto):
+    - email (string, email)
+    - password (string, min length 8)
+  - Response:
+    - access_token: string
+    - user: user object WITHOUT password (includes isDeleted, role, branch, etc.)
+  - Errors:
+    - 401 Unauthorized: invalid credentials
+    - 403 Forbidden: user isDeleted
+
+5.3 Users (ADMIN-only)
+Controller has @UseGuards(JwtAuthGuard, RolesGuard). Each route requires ADMIN via @Roles('ADMIN').
+
+- GET /users
+  - Path: /api/users
+  - Auth: Bearer token
+  - Role: ADMIN
+  - Query:
+    - page?: string (default 1)
+    - limit?: string (default 10)
+    - branch?: string
+    - role?: string
+  - Response:
+    - { data: User[], total, page, limit, totalPages }
+    - Selected fields per user: id, name, email, role, branch, createdAt, updatedAt
+
+- POST /users
+  - Path: /api/users
+  - Auth: Bearer token
+  - Role: ADMIN
+  - Body (CreateUserDto):
+    - name: string
+    - email: string
+    - phone: string
+    - dob?: Date (note: validator expects IsDate; frontend typically sends ISO string—verify on integration)
+    - password: string (min length 8)
+  - Response: created user record (includes password in DB response as currently implemented by Prisma create)
+  - Errors:
+    - 409 Conflict: "Email or phone already exists"
+
+- PUT /users/:id
+  - Path: /api/users/{id}
+  - Auth: Bearer token
+  - Role: ADMIN
+  - Body: any (no DTO validation here)
+  - Response: updated user
+
+- PATCH /users/:id/delete
+  - Path: /api/users/{id}/delete
+  - Auth: Bearer token
+  - Role: ADMIN
+  - Behavior: soft-deletes a user (isDeleted=true, deletedAt set)
+  - Errors:
+    - 403: admin cannot delete itself
+    - 404: user not found / already deleted
+
+- PATCH /users/:id/reset-password
+  - Path: /api/users/{id}/reset-password
+  - Auth: Bearer token
+  - Role: ADMIN
+  - Body (ResetPasswordDto):
+    - newPassword: string (min length 8)
+  - Errors:
+    - 403: admin cannot reset its own password
+    - 404: user not found
+
+- PATCH /users/:id/role
+  - Path: /api/users/{id}/role
+  - Auth: Bearer token
+  - Role: ADMIN
+  - Body (ChangeRoleDto):
+    - action: 'PROMOTE' | 'DEMOTE'
+  - Behavior:
+    - PROMOTE => role becomes ADMIN
+    - DEMOTE => role becomes USER
+  - Notes:
+    - If targetUserId === requesterId, service throws a generic Error (not a Nest HttpException), which will surface as 500.
+
+5.4 Parents
+NOTE: Parent endpoints are currently NOT protected by auth guards.
+
+- GET /parent
+  - Path: /api/parent
+  - Auth: none
+  - Query:
+    - page?: string (default 1)
+    - limit?: string (default 10; service caps to 25)
+    - search?: string (searches fname/lname/email/phone)
+    - branch?: string
+  - Response:
+    - { total, page, limit, totalPages, data: Parents[] }
+
+- GET /parent/:id
+  - Path: /api/parent/{id}
+  - Auth: none
+  - Response: parent record
+  - Errors:
+    - 404 if not found
+
+- POST /parent
+  - Path: /api/parent
+  - Auth: none
+  - Body (CreateParentDto):
+    - fname: string
+    - lname: string
+    - gender: 'M' | 'F'
+    - phone_number?: string
+    - email?: string
+    - address?: string
+    - occupation?: string
+    - relationship?: 'guardian' | 'mother' | 'father' | 'sibling' | 'other' (present in DTO, but not used in service create)
+    - branch: string
+  - Response: created parent
+  - Errors:
+    - 400 "User already exists" on unique conflicts (phone)
+
+- PUT /parent/:id
+  - Path: /api/parent/{id}
+  - Auth: none
+  - Body: UpdateParentDto (partial CreateParentDto)
+  - Response: ParentDto (mapped response)
+  - Errors:
+    - 400 if unique conflicts (message includes which field)
+
+5.5 Children (JWT + BranchAccessGuard)
+Controller has @UseGuards(JwtAuthGuard, BranchAccessGuard).
+
+- GET /child
+  - Path: /api/child
+  - Auth: Bearer token
+  - Query:
+    - query?: string (search fname/lname)
+    - page?: string (default 1)
+    - limit?: string (default 10)
+    - gender?: string
+    - program?: string
+    - parent_id?: string
+    - branch?: string
+  - Branch behavior:
+    - Non-ADMIN: can only see their own branch
+    - ADMIN: can see all, or filter by specifying branch
+  - Response:
+    - { total, page, limit, totalPages, data: Children[] }
+
+- GET /child/:id
+  - Path: /api/child/{id}
+  - Auth: Bearer token
+  - Response: child record
+  - Errors:
+    - 404 if child not found
+    - 403 if branchFilter is set and child.branch !== branchFilter
+
+- POST /child
+  - Path: /api/child
+  - Auth: Bearer token
+  - Body (CreateChildDto):
+    - fname: string
+    - lname: string
+    - gender: 'M' | 'F'
+    - birthdate: ISO date string
+    - program: 'kindergarten' | 'childcare'
+    - branch: string (NOTE: for non-ADMIN, backend overrides this to request.user.branch)
+    - parent_ids: number[] (must contain at least 1)
+    - has_discount?: boolean
+    - discount_percent?: number
+    - discount_note?: string
+  - Behavior:
+    - Validates parents exist
+    - Creates child and creates join rows in children_parents with relationship='guardian', is_primary=false
+  - Response: created child (does NOT include expanded parents)
+  - Errors:
+    - 400 if missing/invalid parents
+    - 500 "Failed to create child" for unexpected errors
+
+- PUT /child/:id
+  - Path: /api/child/{id}
+  - Auth: Bearer token
+  - Body (UpdateChildDto):
+    - fname?, lname?, gender?, birthdate?, program?, is_active?, branch?, parent_ids?, has_discount?, discount_percent?, discount_note?
+  - Branch behavior:
+    - Non-ADMIN cannot change branch to a different branch (403)
+  - Parent behavior:
+    - If parent_ids is NOT provided: updates only child columns
+    - If parent_ids is provided: deletes all existing join rows and recreates them
+
+5.6 Payments (JWT + BranchAccessGuard)
+Controller has @UseGuards(JwtAuthGuard, BranchAccessGuard).
+
+- GET /payments/:child_id/paid-months
+  - Path: /api/payments/{child_id}/paid-months
+  - Auth: Bearer token
+  - Response: Array<{ year: number, month: number }> derived from MonthlyPaymentRecords
+  - NOTE: this endpoint does not currently apply a branch filter check for the child.
+
+- POST /payments
+  - Path: /api/payments
+  - Auth: Bearer token
+  - Body (CreatePaymentDto):
+    - child_id: number
+    - total_amount: number
+    - months: string[] (ISO dates; backend normalizes each to UTC first day of that month)
+    - method: string
+    - notes?: string
+  - Behavior:
+    - Removes months that are already paid for that child
+    - If all requested months are already paid => 400 with object body:
+      - { message: 'All months are already paid', overlapped: string[] }
+    - Creates one Payments row and multiple MonthlyPaymentRecords rows
+    - Splits total_amount evenly across newly recorded months
+  - Response:
+    - { payment, recordedMonths: string[], skippedMonths: string[] }
+  - Notes:
+    - Payment.branch and payment.created_by are not set in createPayment; DB defaults may apply.
+
+- GET /payments
+  - Path: /api/payments
+  - Auth: Bearer token
+  - Query (GetPaymentsDto):
+    - child_id?: number
+    - parent_id?: number (filters payments by children of this parent)
+    - month?: ISO date string (filters included monthly_records to that month)
+    - page?: number (default 1)
+    - limit?: number (default 10)
+    - order?: 'asc'|'desc' (default desc by payment_date)
+    - branch?: string (ADMIN only; ignored for non-ADMIN)
+  - Response:
+    - { total, page, limit, totalPages, data: Payments[] }
+    - Payments include monthly_records (all or filtered-by-month)
+
+- GET /payments/unpaid
+  - Path: /api/payments/unpaid
+  - Auth: Bearer token
+  - Query (GetUnpaidMonthlyPaymentsDto):
+    - month: ISO date string (required)
+    - page?: number (default 1)
+    - limit?: number (default 10)
+    - branch?: string (ADMIN only; ignored for non-ADMIN)
+  - Behavior:
+    - Returns children that have NO MonthlyPaymentRecords for that exact month date
+  - Response:
+    - { total, page, limit, totalPages, data: Children[] (selected fields) }
+
+- GET /payments/report
+  - Path: /api/payments/report
+  - Auth: Bearer token
+  - Query (GetPaymentsReportDto):
+    - month?: ISO date string
+    - child_id?: number
+    - parent_id?: number
+    - page?: number (default 1)
+    - limit?: number (default 10)
+    - branch?: string (ADMIN only; ignored for non-ADMIN)
+  - Response:
+    - { breakdown: Array<{ method: string, amount: number }>, total: number, page, limit, totalPages }
+
+- GET /payments/export
+  - Path: /api/payments/export
+  - Auth: Bearer token
+  - Query: same as GET /payments
+  - Response:
+    - { filename: string, csv: string }
+  - Notes:
+    - CSV is generated by taking Object.keys of the first payment object and joining Object.values with commas.
+    - Nested objects/arrays (e.g., monthly_records) may serialize as [object Object].
+
+5.7 Payment Info
+NOTE: PaymentInfo endpoints are currently NOT protected by auth guards.
+
+- GET /payment-info
+  - Path: /api/payment-info
+  - Auth: none
+  - Behavior:
+    - If no PaymentInfo row exists, it creates one with empty arrays
+  - Response:
+    - { registration: any[], recurring: any[], discounted: any[] }
+
+- PUT /payment-info
+  - Path: /api/payment-info
+  - Auth: none
+  - Body: any (expects keys: registration, recurring, discounted)
+  - Response: same shape as GET /payment-info
+
+5.8 Notifications
+NOTE: Notification endpoints are currently NOT protected by auth guards.
+
+- POST /notifications/payment-reminder
+  - Path: /api/notifications/payment-reminder
+  - Auth: none
+  - Body:
+    - child_id: number
+    - month: string
+    - message: string
+  - Response:
+    - { success: true }
+  - Notes:
+    - Current implementation only logs; it does not send real SMS/email.
+
+6) Common HTTP statuses you should handle on frontend
+- 200/201: success
+- 400: validation errors, bad input, duplicate/unique constraints, overlapping paid months
+- 401: missing/invalid JWT, invalid login
+- 403: role-based or branch-based access denied, deleted users blocked from login
+- 404: missing resources
+- 409: create user conflict
+- 500: unexpected server errors (some are thrown as generic Error)
+
+7) Typical frontend flows
+- Login:
+  1) POST /api/auth/login with email/password
+  2) Store access_token
+  3) Send Authorization header on protected endpoints
+
+- Branch scoping:
+  - USER role effectively works within one branch
+  - ADMIN can query cross-branch by adding ?branch=<branchName> on endpoints that support it (notably /payments and /child)
+
+- Child creation flow:
+  1) Create or select parent(s) via /parent endpoints
+  2) POST /child with parent_ids and child info
+
+- Payment recording flow:
+  1) Optionally GET /payments/:child_id/paid-months
+  2) POST /payments with months[] and total_amount
+  3) Use recordedMonths/skippedMonths to inform UI
+

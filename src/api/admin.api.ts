@@ -3,16 +3,17 @@ import {
   CreateUserRequest,
   ResetPasswordRequest,
   ChangeRoleRequest,
+  UserResponse,
 } from "@/types/user.types";
-import { apiGet, apiPost, apiPatch } from "./http";
+import { apiGet, apiPost, apiPatch, apiPut } from "./http";
 
 /**
  * Fetch all users (requires ADMIN role)
  */
-export const fetchUsers = async (): Promise<User[]> => {
+export const fetchUsers = async (): Promise<UserResponse> => {
   console.log("[API] fetchUsers - start");
   try {
-    const res = await apiGet<User[]>("/api/users");
+    const res = await apiGet<UserResponse>("/api/users");
     console.log("[API] fetchUsers - success", res);
     return res;
   } catch (err) {

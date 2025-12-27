@@ -4,7 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Users } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { LoaderIcon } from "@/components/ui/skeleton-card";
-import type { Parent } from "@/types/parent.types";
+import type { Parent, ParentOutput } from "@/types/parent.types";
 
 // ------------------------------
 // Parent Selection Step
@@ -25,7 +25,7 @@ export function ParentStep({
 
   // Local filtering for quick UX while server responds
   const filtered = (parents || []).filter(
-    (p: Parent) =>
+    (p: ParentOutput) =>
       `${p.fname} ${p.lname}`.toLowerCase().includes(search.toLowerCase()) ||
       (p.phone || "").includes(search)
   );

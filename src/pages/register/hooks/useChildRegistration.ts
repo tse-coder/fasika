@@ -140,9 +140,10 @@ export const useChildRegistration = () => {
       birthdate,
       branch: childForm.branch,
       program: childForm.program,
-      monthlyFee: recurring?.amount,
-      discountPercent: childForm.hasDiscount ? discountPercent : undefined,
-      discountNote: childForm.hasDiscount ? childForm.discountNote : undefined,
+      monthly_fee: recurring?.amount,
+      has_discount: Boolean(childForm.hasDiscount),
+      discount_percent: childForm.hasDiscount ? discountPercent : 0,
+      discount_note: childForm.hasDiscount ? childForm.discountNote : "",
       parent_ids: [selectedParent],
     } as any;
 
@@ -151,7 +152,6 @@ export const useChildRegistration = () => {
       await createChild(childPayload as Omit<Child, "id">);
       await fetchChildren();
       toast({ title: "Success!", description: "Child has been registered." });
-
       setChildForm(initialChildForm);
       setChildErrors({});
       return true;

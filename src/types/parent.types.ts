@@ -3,7 +3,7 @@ export interface Parent {
   fname: string;
   lname: string;
   gender: "M" | "F";
-  phone: string;
+  phone_number: string;
   email: string;
   is_active: boolean;
   created_at: string;
@@ -24,4 +24,16 @@ export interface parentState {
   fetchParents: (filters?: any) => Promise<Parent[]>;
   isLoading: boolean;
   error: string | null;
+}
+
+export interface ParentOutput {
+  id: number;
+  fname: string;
+  lname: string;
+  gender: "M" | "F";
+  phone: string;
+  email: string;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
 }

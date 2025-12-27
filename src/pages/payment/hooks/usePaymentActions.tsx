@@ -6,6 +6,7 @@ import { PaymentInfoOverlay } from "../sections/paymentInfoOverlay";
 import { CreatePaymentResponse } from "@/types/payment.types";
 import { Payment } from "@/types/payment.types";
 import { Child } from "@/types/child.types";
+import { Branch } from "@/types/api.types";
 
 /**
  * Custom hook to handle payment actions (create, delete, view)
@@ -30,6 +31,8 @@ export const usePaymentActions = (
     months: string[];
     method: string;
     notes?: string;
+    category: string;
+    branch: Branch
   }) => {
     setIsSubmitting(true);
     try {

@@ -1,3 +1,5 @@
+import { Branch } from "./api.types";
+
 export type PaymentType = "registeration" | "monthly" | "quarterly";
 export interface Payment {
   id: number;
@@ -37,6 +39,7 @@ export interface NewPaymentRequest {
 
   notes?: string; // Optional, max 255 characters
   category: string;
+  // branch: Branch;
 }
 
 export interface CreatePaymentResponse {

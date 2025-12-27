@@ -144,8 +144,9 @@ export function PaymentInfoOverlay({
         </div>
       </div>
 
-      {/* Monthly Records */}
-      <div className="space-y-4">
+      {/* Monthly Records if the payment is not for registration*/}
+      {(false)?(
+              <div className="space-y-4">
         <h3 className="font-semibold text-lg flex items-center gap-2">
           <FileText className="w-5 h-5" />
           Monthly Records ({payment.monthly_records.length})
@@ -183,6 +184,12 @@ export function PaymentInfoOverlay({
           </div>
         )}
       </div>
+      ):(
+        <div className="font-bold">
+          Registration Fee
+        </div>
+      )}
+
 
       {/* Notes */}
       {payment.notes && (

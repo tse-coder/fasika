@@ -34,6 +34,18 @@ export const useParents = create<parentState>((set) => ({
       return [];
     }
   },
+  // fetchParentsOfChild: async (childId: number) => {
+  //   set({ isLoading: true, error: null });
+  //   try {
+  //     const parents = await fetchParents({ child_id: childId });
+  //     set({ parents, isLoading: false });
+  //     return parents;
+  //   } catch (err) {
+  //     console.error("Error fetching parents of child:", err);
+  //     set({ error: "Failed to load parents.", isLoading: false });
+  //     return [];
+  //   }
+  // }
 }));
 
 export const useParent = (id: number) => {
