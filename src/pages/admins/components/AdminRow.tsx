@@ -3,6 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { Pen, PenLine, Trash2 } from "lucide-react";
 import { Admin } from "@/types/admins.types";
 import { LoaderIcon } from "@/components/ui/skeleton-card";
+import { useAuth } from "@/stores/auth.store";
 
 interface AdminRowProps {
   admin: Admin;
@@ -30,7 +31,7 @@ export const AdminRow = ({
   const isCurrentlyDeleting = isDeleting;
   const isCurrentlyEditing = isEditing;
   const canEditThisAdmin = canEdit && admin.id !== "u-admin-1"; // Can't edit super admin
-
+  const {user} = useAuth()
   return (
     <tr className="border-b border-border/50 hover:bg-muted/30 transition-colors">
       <td className="py-4 px-4">
@@ -59,7 +60,7 @@ export const AdminRow = ({
       </td>
       <td className="py-4 px-4">
         <div className="flex items-center gap-2">
-          {canEditThisAdmin && (
+          {canEditThisAdmin && user.id !== admin.id && (
             <Button
               variant="ghost"
               size="sm"
@@ -73,7 +74,7 @@ export const AdminRow = ({
               )}
             </Button>
           )}
-          {canDeleteThisAdmin && (
+          {canDeleteThisAdmin && user.id !== admin.id && (
             <Button
               variant="ghost"
               size="sm"

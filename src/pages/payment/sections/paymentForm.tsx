@@ -18,6 +18,7 @@ import { usePaymentInfoStore } from "@/stores/paymentInfo.store";
 import type { Child } from "@/types/child.types";
 import type { PaidMonth, PaymentsPaginated } from "@/types/payment.types";
 import { fetchPayments } from "@/api/payment.api";
+import { Branch } from "@/types/api.types";
 
 interface PaymentFormProps {
   onSubmit: (data: {
@@ -26,6 +27,8 @@ interface PaymentFormProps {
     months: string[];
     method: string;
     notes?: string;
+    branch?: Branch;
+    category?: string;
   }) => Promise<void>;
   onCancel: () => void;
   isLoading?: boolean;
@@ -391,9 +394,8 @@ export function PaymentForm({
             : form.selectedMonths,
         method: form.method,
         notes: form.notes.trim() || undefined,
-        // @ts-ignore
         category: form.category,
-        branch: currentBranch
+        branch: currentBranch,
       });
     } catch (err) {
       // Error handling is done in parent component
