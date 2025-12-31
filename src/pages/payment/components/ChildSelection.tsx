@@ -126,21 +126,6 @@ export function ChildSelection({
           <div className="font-medium">
             Selected: {selectedChild.fname} {selectedChild.lname}
           </div>
-          {isChildNew && (
-            <div className="text-sm text-blue-600 font-medium">
-              New Student (First year registration)
-            </div>
-          )}
-          {isChildOld && (
-            <div className="text-sm text-green-600 font-medium">
-              Returning Student (Has previous year registration)
-            </div>
-          )}
-          {isLoadingPaidMonths && (
-            <div className="text-sm text-muted-foreground mt-1">
-              Loading payment history...
-            </div>
-          )}
         </div>
       )}
     </div>

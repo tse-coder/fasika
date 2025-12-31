@@ -261,7 +261,7 @@ export function PaymentForm({
         amount = (recurringAmount || 0).toString();
       }
     }
-    // For therapy, preschool, and other - don't auto-fill amount
+    // For therapy, after school, and other - don't auto-fill amount
 
     setForm((prev) => ({
       ...prev,
@@ -370,7 +370,7 @@ export function PaymentForm({
             ? ["1970-01-01"] // Valid date string, far past, safe(fake for the backend)
             : form.category === "recurring"
             ? form.selectedMonths
-            : [], // No months for therapy, preschool, other
+            : [], // No months for therapy, after school, other
         method: form.method,
         notes: form.notes.trim() || undefined,
         category: form.category,

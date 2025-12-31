@@ -1,8 +1,7 @@
 import { create } from "zustand";
-import { persist } from "zustand/middleware";
-// import { getPaymentInfo, updatePaymentInfo } from "@/mock/api";
-import { PaymentInfoData } from "@/mock/data";
 import { getPaymentInfo, updatePaymentInfo } from "@/api/payment-info.api";
+import { PaymentInfoData } from "@/types/payment-info.types";
+
 
 interface PaymentInfoState {
   data: PaymentInfoData | null;
@@ -12,9 +11,7 @@ interface PaymentInfoState {
   save: (data: PaymentInfoData) => Promise<PaymentInfoData>;
 }
 
-export const usePaymentInfoStore = create<PaymentInfoState>()(
-  persist(
-    (set, get) => ({
+export const usePaymentInfoStore = create<PaymentInfoState>()((set, get) => ({
       data: null,
       isLoading: false,
       error: null,
@@ -46,8 +43,6 @@ export const usePaymentInfoStore = create<PaymentInfoState>()(
           throw err;
         }
       },
-    }),
-    { name: "payment-info" }
-  )
-);
+    })
+  );
 

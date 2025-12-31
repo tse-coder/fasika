@@ -4,7 +4,6 @@ import { Label } from "@/components/ui/label";
 import { PasswordInput } from "@/components/ui/password-input";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { useState } from "react";
-import { mockResetPassword } from "@/mock/api";
 import { useAuth } from "@/stores/auth.store";
 import { useToast } from "@/hooks/use-toast";
 import { resetUserPassword } from "@/api/admin.api";

@@ -2,7 +2,8 @@ import { useEffect, useMemo, useState } from "react";
 import { usePaymentInfoStore } from "@/stores/paymentInfo.store";
 import { useBranchStore } from "@/stores/branch.store";
 import { useToast } from "@/hooks/use-toast";
-import { PaymentInfoData, Program } from "@/mock/data";
+import { Program } from "@/types/child.types";
+import { PaymentInfoData } from "@/types/payment-info.types";
 
 const programs: Program[] = ["kindergarten", "childcare"];
 

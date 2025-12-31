@@ -4,7 +4,7 @@ import { useChildren } from "@/stores/children.store";
 import { Parent } from "@/types/parent.types";
 // import { createChild } from "@/mock/api";
 import { Branch } from "@/types/api.types";
-import { Program } from "@/mock/data";
+import { Program } from "@/types/child.types";
 import { useBranchStore } from "@/stores/branch.store";
 import { usePaymentInfoStore } from "@/stores/paymentInfo.store";
 import { createChild } from "@/api/child.api";

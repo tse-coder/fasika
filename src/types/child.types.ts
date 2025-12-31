@@ -1,5 +1,5 @@
 import { Branch, ChildParentLink } from "./api.types";
-import { Program } from "@/mock/data";
+export type Program = "kindergarten" | "childcare";
 
 export interface Child {
   id: string;

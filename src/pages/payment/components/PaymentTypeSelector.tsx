@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 
-export type PaymentCategory = "registration" | "recurring" | "therapy" | "preschool" | "other";
+export type PaymentCategory = "registration" | "recurring" | "therapy" | "after school" | "other";
 
 interface PaymentTypeSelectorProps {
   selectedCategory: PaymentCategory;
@@ -66,11 +66,11 @@ export function PaymentTypeSelector({
 
         <Button
           type="button"
-          variant={selectedCategory === "preschool" ? "default" : "outline"}
-          onClick={() => handleCategoryChange("preschool")}
+          variant={selectedCategory === "after school" ? "default" : "outline"}
+          onClick={() => handleCategoryChange("after school")}
           disabled={!selectedChild}
         >
-          Preschool
+          After School
         </Button>
 
         <Button
