@@ -1,10 +1,10 @@
-import { useMemo } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { SkeletonCard, LoaderIcon } from "@/components/ui/skeleton-card";
 import { Button } from "@/components/ui/button";
 import { Child } from "@/types/child.types";
 import ChildCard from "../sections/childCard";
 import EmptyState from "../sections/emptyState";
-import { filterByAge } from "../utils/childrenFilters";
+import { filterChildren } from "../utils/childrenFilters";
 
 interface ChildrenListProps {
   children: Child[];
@@ -13,10 +13,11 @@ interface ChildrenListProps {
   showLoadMore: boolean;
   minAge: string;
   maxAge: string;
+  activeFilter: string;
   debouncedSearch: string;
   onLoadMore: () => void;
   onShowInfo: (child: Child) => void;
-  onChildUpdate: () => void;
+  onChildUpdate: (updatedChild?: Child) => void;
 }
 
 /**
@@ -29,15 +30,37 @@ export const ChildrenList = ({
   showLoadMore,
   minAge,
   maxAge,
+  activeFilter,
   debouncedSearch,
   onLoadMore,
   onShowInfo,
   onChildUpdate,
 }: ChildrenListProps) => {
-  // Filter by age range
+  const [localChildren, setLocalChildren] = useState<Child[]>(children);
+  
+  // Update local children when prop changes
+  useEffect(() => {
+    setLocalChildren(children);
+  }, [children]);
+  
+  // Handle immediate UI updates for child status changes
+  const handleChildUpdate = (updatedChild?: Child) => {
+    if (updatedChild) {
+      // Update the local state immediately
+      setLocalChildren(prev => 
+        prev.map(child => 
+          child.id === updatedChild.id ? updatedChild : child
+        )
+      );
+    }
+    // Also call the parent handler for data refetch
+    onChildUpdate();
+  };
+
+  // Filter by age range and status
   const filteredList = useMemo(
-    () => filterByAge(children, minAge, maxAge),
-    [children, minAge, maxAge]
+    () => filterChildren(localChildren, minAge, maxAge, activeFilter),
+    [localChildren, minAge, maxAge, activeFilter]
   );
 
   const showSkeleton = isLoading && children.length === 0;
@@ -64,7 +87,7 @@ export const ChildrenList = ({
             key={child.id}
             child={child}
             showInfoOverlay={onShowInfo}
-            onChildUpdate={onChildUpdate}
+            onChildUpdate={handleChildUpdate}
           />
         ))}
       </div>

@@ -1,4 +1,5 @@
 import React from 'react'
+import { PasswordInput } from "@/components/ui/password-input";
 type AdminCreationFormProps = {
     onSubmit: (data: any) => void;
 }
@@ -13,8 +14,12 @@ function AdminCreationForm({onSubmit}: AdminCreationFormProps) {
             <input type="text" className="w-full p-2 border rounded" required />
         </div>
         <div className="mb-4">
-            <label className="block mb-2 font-medium">password</label>
-            <input type="password" className="w-full p-2 border rounded" required />
+            <PasswordInput
+              id="password"
+              label="Password"
+              className="w-full p-2 border rounded"
+              required
+            />
         </div>
         <div className="mb-4">
             <label className="block mb-2 font-medium">Role</label>

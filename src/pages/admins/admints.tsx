@@ -10,6 +10,7 @@ import { AdminEditOverlay } from "./components/AdminEditOverlay";
 import { Navigate } from "react-router-dom";
 import { useAdmins } from "./hooks/useAdmins";
 import { AdminCreationForm } from "./components/AdminCreationForm";
+import { useBranchStore } from "@/stores/branch.store";
 
 /**
  * Main Admins page component
@@ -17,6 +18,7 @@ import { AdminCreationForm } from "./components/AdminCreationForm";
  */
 function Admins() {
   const { admins, isLoading, error, refetch } = useAdmins();
+  const { branches } = useBranchStore();
   const {
     handleCreateAdmin,
     handleDeleteAdmin,
@@ -69,7 +71,7 @@ function Admins() {
       openModal(
         <AdminEditOverlay
           admin={admin}
-          branches={["Bulbula", "Hayat", "Semit", "Megenagna"]}
+          branches={branches}
           onSave={async (data) => {
             const success = await handleEdit(id, data);
             if (success) {

@@ -3,7 +3,7 @@ export interface Parent {
   fname: string;
   lname: string;
   gender: "M" | "F";
-  phone_number: string;
+  phone: string;
   email: string;
   is_active: boolean;
   created_at: string;
@@ -17,6 +17,7 @@ export interface ParentQuery {
   is_active?: boolean;
   email?: string;
   phone_number?: string;
+  child_id:string;
 }
 
 export interface parentState {

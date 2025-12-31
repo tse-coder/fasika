@@ -50,11 +50,13 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
   const openModal = useModalStore((state) => state.openModal);
   const closeModal = useModalStore((state) => state.closeModal);
   const { name, email, role, updateUser } = useUserProfile();
-  const { currentBranch, branches, setBranch, setFromUser } = useBranchStore();
+  const { currentBranch, branches, setBranch, setFromUser, loadBranches } = useBranchStore();
 
   useEffect(() => {
     setFromUser(user?.branch as Branch);
-  }, [user?.branch, setFromUser]);
+    // Load branches from API on component mount
+    loadBranches();
+  }, [user?.branch, setFromUser, loadBranches]);
 
   const handleLogout = () => {
     logout();

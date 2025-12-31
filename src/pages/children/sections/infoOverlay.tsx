@@ -64,7 +64,7 @@ function InfoOverlay({ child, parentInfo }: InfoOverlayProps) {
             <div className="space-y-2 pl-9">
               <div className="flex items-center gap-2 text-sm">
                 <Phone className="w-4 h-4 text-muted-foreground" />
-                <span>{p.phone_number}</span>
+                <span>{p.phone}</span>
               </div>
 
               <div className="flex items-center gap-2 text-sm">

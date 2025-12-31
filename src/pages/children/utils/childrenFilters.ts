@@ -18,3 +18,37 @@ export const filterByAge = (
     return true;
   });
 };
+
+/**
+ * Filter children by status (active/inactive)
+ */
+export const filterByStatus = (
+  children: Child[],
+  activeFilter?: string
+): Child[] => {
+  if (!activeFilter || activeFilter === "all") return children;
+
+  return children.filter((child) => {
+    return activeFilter === "active" ? child.is_active : !child.is_active;
+  });
+};
+
+/**
+ * Filter children by both age range and status
+ */
+export const filterChildren = (
+  children: Child[],
+  minAge?: string,
+  maxAge?: string,
+  activeFilter?: string
+): Child[] => {
+  let filtered = children;
+  
+  // Apply status filter first
+  filtered = filterByStatus(filtered, activeFilter);
+  
+  // Then apply age filter
+  filtered = filterByAge(filtered, minAge, maxAge);
+  
+  return filtered;
+};

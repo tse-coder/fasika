@@ -10,7 +10,7 @@ import {
 
 export const fetchPayments = async (
   params: {
-    child_id?: number;
+    child_id?: string;
     parent_id?: number;
     month?: string;
     page?: number;
@@ -30,7 +30,7 @@ export const fetchPayments = async (
 };
 
 export const fetchPaidMonths = async (
-  childId: number
+  childId: string
 ): Promise<PaidMonth[]> => {
   console.log("[API] fetchPaidMonths - start", childId);
   try {
@@ -150,6 +150,83 @@ export const exportPayments = async (
     return res;
   } catch (err) {
     console.error("[API] exportPayments - error", err);
+    throw err;
+  }
+};
+
+/**
+ * Fetch late payments by month range
+ * GET /api/payments/late
+ */
+export const fetchLatePayments = async (params: {
+  months: "1" | "2" | "3" | "3+";
+  branch?: string;
+}): Promise<Array<{
+  id: number;
+  fname: string;
+  lname: string;
+  gender: string;
+  birthdate: string;
+  monthlyFee?: number;
+  monthsLate: number;
+  unpaidMonths: string[];
+  parents?: Array<{ id: number; email: string; fname: string; lname: string }>;
+}>> => {
+  console.log("[API] fetchLatePayments - start", params);
+  try {
+    const res = await apiGet<Array<{
+      id: number;
+      fname: string;
+      lname: string;
+      gender: string;
+      birthdate: string;
+      monthlyFee?: number;
+      monthsLate: number;
+      unpaidMonths: string[];
+      parents?: Array<{ id: number; email: string; fname: string; lname: string }>;
+    }>>("/api/payments/late", params);
+    console.log("[API] fetchLatePayments - success", res);
+    return res;
+  } catch (err) {
+    console.error("[API] fetchLatePayments - error", err);
+    throw err;
+  }
+};
+
+/**
+ * Fetch payments expiring in 10 days
+ * GET /api/payments/to-be-expired
+ */
+export const fetchExpiringPayments = async (params: {
+  branch?: string;
+}): Promise<Array<{
+  id: number;
+  fname: string;
+  lname: string;
+  gender: string;
+  birthdate: string;
+  monthlyFee?: number;
+  monthsLate: number;
+  unpaidMonths: string[];
+  parents?: Array<{ id: number; email: string; fname: string; lname: string }>;
+}>> => {
+  console.log("[API] fetchExpiringPayments - start", params);
+  try {
+    const res = await apiGet<Array<{
+      id: number;
+      fname: string;
+      lname: string;
+      gender: string;
+      birthdate: string;
+      monthlyFee?: number;
+      monthsLate: number;
+      unpaidMonths: string[];
+      parents?: Array<{ id: number; email: string; fname: string; lname: string }>;
+    }>>("/api/payments/to-be-expired", params);
+    console.log("[API] fetchExpiringPayments - success", res);
+    return res;
+  } catch (err) {
+    console.error("[API] fetchExpiringPayments - error", err);
     throw err;
   }
 };

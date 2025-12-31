@@ -26,7 +26,7 @@ export const usePaymentActions = (
   } | null>(null);
 
   const handleSubmitPayment = async (data: {
-    child_id: number;
+    child_id: string;
     total_amount: number;
     months: string[];
     method: string;

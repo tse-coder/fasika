@@ -2,7 +2,7 @@ import { Branch, ChildParentLink } from "./api.types";
 import { Program } from "@/mock/data";
 
 export interface Child {
-  id: number;
+  id: string;
   fname: string;
   lname: string;
   gender: string;

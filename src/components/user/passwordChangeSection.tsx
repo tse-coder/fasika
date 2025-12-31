@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { PasswordInput } from "@/components/ui/password-input";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { useState } from "react";
 import { mockResetPassword } from "@/mock/api";
@@ -75,10 +76,9 @@ export const PasswordChangeSection = () => {
       {isOpen && (
         <div className="mt-4 space-y-4 animate-in fade-in slide-in-from-top-2">
           <div className="space-y-2">
-            <Label htmlFor="currentPassword">Current Password</Label>
-            <Input
+            <PasswordInput
               id="currentPassword"
-              type="password"
+              label="Current Password"
               value={currentPassword}
               onChange={(e) => setCurrentPassword(e.target.value)}
               placeholder="Enter current password"
@@ -86,10 +86,9 @@ export const PasswordChangeSection = () => {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="newPassword">New Password</Label>
-            <Input
+            <PasswordInput
               id="newPassword"
-              type="password"
+              label="New Password"
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
               placeholder="Enter new password"
@@ -97,10 +96,9 @@ export const PasswordChangeSection = () => {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="confirmPassword">Confirm New Password</Label>
-            <Input
+            <PasswordInput
               id="confirmPassword"
-              type="password"
+              label="Confirm New Password"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               placeholder="Confirm new password"

@@ -56,7 +56,7 @@ export const usePayments = create<PaymentState>((set, get) => ({
     }
   },
 
-  fetchPaidMonths: async (childId: number) => {
+  fetchPaidMonths: async (childId: string) => {
     try {
       const paidMonths = await fetchPaidMonths(childId);
       return paidMonths;

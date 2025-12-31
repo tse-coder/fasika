@@ -17,7 +17,7 @@ import { updateChild } from "@/api/child.api";
 type ChildCardProps = {
   child: Child;
   showInfoOverlay: (child: any) => void;
-  onChildUpdate?: () => void;
+  onChildUpdate?: (updatedChild?: Child) => void;
 };
 
 function ChildCard({ child, showInfoOverlay, onChildUpdate }: ChildCardProps) {
@@ -25,20 +25,27 @@ function ChildCard({ child, showInfoOverlay, onChildUpdate }: ChildCardProps) {
 
   const handleToggleActivate = async (e: React.MouseEvent) => {
     e.stopPropagation();
+    const newStatus = !child.is_active;
+    
+    // Create updated child object for immediate UI update
+    const updatedChild = { ...child, is_active: newStatus };
+    
     try {
-      await updateChild(child.id, { is_active: !child.is_active });
+      await updateChild(child.id, { is_active: newStatus });
       toast({
-        title: child.is_active ? "Deactivated" : "Activated",
-        description: `${child.fname} ${child.lname} has been ${child.is_active ? "deactivated" : "activated"}.`,
+        title: newStatus ? "Activated" : "Deactivated",
+        description: `${child.fname} ${child.lname} has been ${newStatus ? "activated" : "deactivated"}.`,
       });
+      
+      // Immediately update UI with the new status
       if (onChildUpdate) {
-        onChildUpdate();
+        onChildUpdate(updatedChild);
       }
     } catch (err: any) {
       toast({
         title: "Error",
         description:
-          err?.response?.data?.message || "Failed to deactivate child.",
+          err?.response?.data?.message || "Failed to update child status.",
         variant: "destructive",
       });
     }

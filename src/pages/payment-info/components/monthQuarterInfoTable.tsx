@@ -34,7 +34,7 @@ function MonthQuartInfoTable({
     <Card>
       <CardHeader>
         <CardTitle>
-          {currentBranch === "Hayat" ? "Quarterly" : "Monthly"} Fees
+          {currentBranch === "pre school summit" ? "Quarterly" : "Monthly"} Fees
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -43,7 +43,7 @@ function MonthQuartInfoTable({
             <TableRow>
               <TableHead>Program</TableHead>
               <TableHead>
-                {currentBranch === "Hayat" ? "Quarterly" : "Monthly"} Amount
+                {currentBranch === "pre school summit" ? "Quarterly" : "Monthly"} Amount
               </TableHead>
               <TableHead>Discount (%)</TableHead>
             </TableRow>

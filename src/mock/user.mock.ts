@@ -28,7 +28,7 @@ export const mockCreateUser = async (
     ...data,
     id: `u-${nextId()}`,
     role: "USER",
-    branch: data.branch || "Bulbula",
+    branch: data.branch || "daycare Bulbula",
     dob: data.dob || null,
     phone: data.phone || null,
     isDeleted: false,

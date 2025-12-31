@@ -3,7 +3,7 @@ import { Branch } from "./api.types";
 export type PaymentType = "registeration" | "monthly" | "quarterly";
 export interface Payment {
   id: number;
-  child_id: number;
+  child_id: string;
   total_amount: string; // Decimal as string from backend
   payment_date: string; // ISO 8601 datetime
   method: string;
@@ -14,6 +14,7 @@ export interface Payment {
   category?: "registration" | "monthly" | "quarterly" | string;
   branch?: import("./api.types").Branch;
   program?: string;
+  children_parents?: {relationship: string, is_primary: boolean}[];
 }
 
 export interface MonthlyRecord {
@@ -32,7 +33,7 @@ export interface PaidMonth {
 }
 
 export interface NewPaymentRequest {
-  child_id: number;
+  child_id: string;
   total_amount: number;
   months: string[]; // Array of ISO date strings (YYYY-MM-DD format)
   method: string; // "Cash", "CBE", "Dashen Bank"
@@ -45,7 +46,7 @@ export interface NewPaymentRequest {
 export interface CreatePaymentResponse {
   payment: {
     id: number;
-    child_id: number;
+    child_id: string;
     total_amount: string;
     payment_date: string;
     method: string;
@@ -85,14 +86,14 @@ export interface PaymentState {
     totalPages: number;
   };
   fetchPayments: (filters?: {
-    child_id?: number;
+    child_id?: string;
     parent_id?: number;
     month?: string;
     page?: number;
     limit?: number;
     order?: "asc" | "desc";
   }) => Promise<PaymentsPaginated>;
-  fetchPaidMonths: (childId: number) => Promise<PaidMonth[]>;
+  fetchPaidMonths: (childId: string) => Promise<PaidMonth[]>;
   createPayment: (payment: NewPaymentRequest) => Promise<CreatePaymentResponse>;
   deletePayment: (id: number) => Promise<void>;
   isLoading: boolean;

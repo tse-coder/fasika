@@ -12,11 +12,8 @@ export interface ChildParentLink {
 }
 
 export type Branch =
-  | "Bulbula"
-  | "Hayat"
-  | "Semit"
-  | "Megenagna"
-  | "bulbula"
-  | "hayat"
-  | "semit"
-  | "megenagna";
+  | "pre school summit"
+  | "day care summit"
+  | "daycare Hayat"
+  | "daycare Bulbula"
+  | "Nany center Megenagna"

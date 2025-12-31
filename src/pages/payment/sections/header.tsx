@@ -34,7 +34,7 @@ type PaymentHeaderProps = {
   open: boolean;
   setOpen: (value: boolean) => void;
   onSubmitPayment: (data: {
-    child_id: number;
+    child_id: string;
     total_amount: number;
     months: string[];
     method: string;

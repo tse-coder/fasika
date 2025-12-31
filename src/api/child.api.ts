@@ -26,7 +26,7 @@ export const fetchChildren = async (params: ChildQuery = {}) => {
   }
 };
 
-export const fetchChildById = async (id: number) => {
+export const fetchChildById = async (id: string) => {
   console.log("[API] fetchChildById - start", id);
   try {
     const res = await apiGet<Child>(`/api/child/${id}`);
@@ -38,7 +38,7 @@ export const fetchChildById = async (id: number) => {
   }
 };
 
-export const updateChild = async (id: number, updates: Partial<Child>) => {
+export const updateChild = async (id: string, updates: Partial<Child>) => {
   console.log("[API] updateChild - start", { id, updates });
   try {
     const res = await apiPut<Child>(`/api/child/${id}`, updates);

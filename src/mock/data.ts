@@ -40,7 +40,7 @@ export interface PaymentInfoData {
   discounted: DiscountedChildEntry[];
 }
 
-export const branches: Branch[] = ["Bulbula", "Hayat", "Semit", "Megenagna"];
+
 
 export const mockUsers: MockUser[] = [
   {
@@ -50,7 +50,7 @@ export const mockUsers: MockUser[] = [
     phone: "0911000000",
     dob: null,
     role: "ADMIN",
-    branch: "Bulbula",
+    branch: "daycare Bulbula",
     isDeleted: false,
     deletedAt: null,
     createdAt: new Date().toISOString(),
@@ -64,7 +64,7 @@ export const mockUsers: MockUser[] = [
     phone: "0911000001",
     dob: null,
     role: "USER",
-    branch: "Hayat",
+    branch: "daycare Hayat",
     isDeleted: false,
     deletedAt: null,
     createdAt: new Date().toISOString(),
@@ -78,7 +78,7 @@ export const mockUsers: MockUser[] = [
     phone: "0911000002",
     dob: null,
     role: "USER",
-    branch: "Semit",
+    branch: "day care summit",
     isDeleted: false,
     deletedAt: null,
     createdAt: new Date().toISOString(),
@@ -92,7 +92,7 @@ export const mockUsers: MockUser[] = [
     phone: "0911000003",
     dob: null,
     role: "USER",
-    branch: "Megenagna",
+    branch: "Nany center Megenagna",
     isDeleted: false,
     deletedAt: null,
     createdAt: new Date().toISOString(),
@@ -106,7 +106,7 @@ export const mockUsers: MockUser[] = [
     phone: "0911000004",
     dob: null,
     role: "USER",
-    branch: "Bulbula",
+    branch: "daycare Bulbula",
     isDeleted: false,
     deletedAt: null,
     createdAt: new Date().toISOString(),
@@ -120,7 +120,7 @@ export const mockUsers: MockUser[] = [
     phone: "0911000005",
     dob: null,
     role: "USER",
-    branch: "Hayat",
+    branch: "daycare Hayat",
     isDeleted: false,
     deletedAt: null,
     createdAt: new Date().toISOString(),
@@ -134,7 +134,7 @@ export const mockUsers: MockUser[] = [
     phone: "0911000006",
     dob: null,
     role: "USER",
-    branch: "Semit",
+    branch: "day care summit",
     isDeleted: false,
     deletedAt: null,
     createdAt: new Date().toISOString(),
@@ -148,7 +148,7 @@ export const mockUsers: MockUser[] = [
     phone: "0911000007",
     dob: null,
     role: "USER",
-    branch: "Megenagna",
+    branch: "Nany center Megenagna",
     isDeleted: false,
     deletedAt: null,
     createdAt: new Date().toISOString(),
@@ -319,7 +319,7 @@ export const mockChildren: Array<
     gender: "F",
     birthdate: "2021-04-14",
     is_active: true,
-    branch: "Bulbula",
+    branch: "daycare Bulbula",
     program: "kindergarten",
     monthlyFee: 3500,
     registrationPaid: true,
@@ -332,7 +332,7 @@ export const mockChildren: Array<
     gender: "M",
     birthdate: "2020-11-02",
     is_active: true,
-    branch: "Hayat",
+    branch: "daycare Hayat",
     program: "childcare",
     monthlyFee: 4000,
     registrationPaid: false,
@@ -347,7 +347,7 @@ export const mockChildren: Array<
     gender: "F",
     birthdate: "2022-07-19",
     is_active: true,
-    branch: "Semit",
+    branch: "day care summit",
     program: "kindergarten",
     monthlyFee: 3200,
     registrationPaid: false,
@@ -360,7 +360,7 @@ export const mockChildren: Array<
     gender: "M",
     birthdate: "2019-03-15",
     is_active: true,
-    branch: "Megenagna",
+    branch: "Nany center Megenagna",
     program: "kindergarten",
     monthlyFee: 3800,
     registrationPaid: true,
@@ -375,7 +375,7 @@ export const mockChildren: Array<
     gender: "F",
     birthdate: "2021-09-22",
     is_active: true,
-    branch: "Bulbula",
+    branch: "daycare Bulbula",
     program: "kindergarten",
     monthlyFee: 3500,
     registrationPaid: true,
@@ -388,7 +388,7 @@ export const mockChildren: Array<
     gender: "M",
     birthdate: "2020-01-08",
     is_active: true,
-    branch: "Hayat",
+    branch: "daycare Hayat",
     program: "childcare",
     monthlyFee: 4000,
     registrationPaid: false,
@@ -403,7 +403,7 @@ export const mockChildren: Array<
     gender: "F",
     birthdate: "2022-12-03",
     is_active: true,
-    branch: "Semit",
+    branch: "day care summit",
     program: "kindergarten",
     monthlyFee: 3200,
     registrationPaid: true,
@@ -416,7 +416,7 @@ export const mockChildren: Array<
     gender: "M",
     birthdate: "2018-06-30",
     is_active: true,
-    branch: "Megenagna",
+    branch: "Nany center Megenagna",
     program: "childcare",
     monthlyFee: 3800,
     registrationPaid: true,
@@ -431,7 +431,7 @@ export const mockChildren: Array<
     gender: "F",
     birthdate: "2021-11-11",
     is_active: true,
-    branch: "Bulbula",
+    branch: "daycare Bulbula",
     program: "kindergarten",
     monthlyFee: 3500,
     registrationPaid: false,
@@ -444,7 +444,7 @@ export const mockChildren: Array<
     gender: "M",
     birthdate: "2020-08-17",
     is_active: true,
-    branch: "Hayat",
+    branch: "daycare Hayat",
     program: "childcare",
     monthlyFee: 4000,
     registrationPaid: true,
@@ -459,7 +459,7 @@ export const mockChildren: Array<
     gender: "F",
     birthdate: "2023-02-28",
     is_active: true,
-    branch: "Semit",
+    branch: "day care summit",
     program: "kindergarten",
     monthlyFee: 3200,
     registrationPaid: true,
@@ -472,7 +472,7 @@ export const mockChildren: Array<
     gender: "M",
     birthdate: "2019-10-05",
     is_active: true,
-    branch: "Megenagna",
+    branch: "Nany center Megenagna",
     program: "childcare",
     monthlyFee: 3800,
     registrationPaid: false,
@@ -487,7 +487,7 @@ export const mockChildren: Array<
     gender: "F",
     birthdate: "2021-05-20",
     is_active: false,
-    branch: "Bulbula",
+    branch: "daycare Bulbula",
     program: "kindergarten",
     monthlyFee: 3500,
     registrationPaid: true,
@@ -500,7 +500,7 @@ export const mockChildren: Array<
     gender: "M",
     birthdate: "2020-12-12",
     is_active: true,
-    branch: "Hayat",
+    branch: "daycare Hayat",
     program: "childcare",
     monthlyFee: 4000,
     registrationPaid: true,
@@ -515,7 +515,7 @@ export const mockChildren: Array<
     gender: "F",
     birthdate: "2022-03-25",
     is_active: true,
-    branch: "Semit",
+    branch: "day care summit",
     program: "kindergarten",
     monthlyFee: 3200,
     registrationPaid: false,
@@ -528,7 +528,7 @@ export const mockChildren: Array<
     gender: "M",
     birthdate: "2019-07-14",
     is_active: true,
-    branch: "Megenagna",
+    branch: "Nany center Megenagna",
     program: "kindergarten",
     monthlyFee: 3800,
     registrationPaid: true,
@@ -551,7 +551,7 @@ export const mockPayments: Payment[] = [
     updated_at: new Date("2024-12-01").toISOString(),
     monthly_records: [],
     category: "registration",
-    branch: "Bulbula",
+    branch: "daycare Bulbula",
     program: "kindergarten",
   },
   {
@@ -565,7 +565,7 @@ export const mockPayments: Payment[] = [
     updated_at: new Date("2024-11-15").toISOString(),
     monthly_records: [],
     category: "registration",
-    branch: "Megenagna",
+    branch: "Nany center Megenagna",
     program: "preschool",
   },
   {
@@ -579,7 +579,7 @@ export const mockPayments: Payment[] = [
     updated_at: new Date("2024-10-20").toISOString(),
     monthly_records: [],
     category: "registration",
-    branch: "Semit",
+    branch: "day care summit",
     program: "kindergarten",
   },
   // Monthly payments
@@ -593,7 +593,7 @@ export const mockPayments: Payment[] = [
     created_at: new Date("2025-01-05").toISOString(),
     updated_at: new Date("2025-01-05").toISOString(),
     category: "monthly",
-    branch: "Bulbula",
+    branch: "daycare Bulbula",
     program: "kindergarten",
     monthly_records: [
       {
@@ -617,7 +617,7 @@ export const mockPayments: Payment[] = [
     created_at: new Date("2025-02-03").toISOString(),
     updated_at: new Date("2025-02-03").toISOString(),
     category: "monthly",
-    branch: "Bulbula",
+    branch: "daycare Bulbula",
     program: "kindergarten",
     monthly_records: [
       {
@@ -641,7 +641,7 @@ export const mockPayments: Payment[] = [
     created_at: new Date("2025-01-10").toISOString(),
     updated_at: new Date("2025-01-10").toISOString(),
     category: "monthly",
-    branch: "Bulbula",
+    branch: "daycare Bulbula",
     program: "kindergarten",
     monthly_records: [
       {
@@ -665,7 +665,7 @@ export const mockPayments: Payment[] = [
     created_at: new Date("2025-01-15").toISOString(),
     updated_at: new Date("2025-01-15").toISOString(),
     category: "monthly",
-    branch: "Megenagna",
+    branch: "Nany center Megenagna",
     program: "preschool",
     monthly_records: [
       {
@@ -689,7 +689,7 @@ export const mockPayments: Payment[] = [
     created_at: new Date("2025-01-20").toISOString(),
     updated_at: new Date("2025-01-20").toISOString(),
     category: "monthly",
-    branch: "Hayat",
+    branch: "daycare Hayat",
     program: "childcare",
     monthly_records: [
       {
@@ -714,7 +714,7 @@ export const mockPayments: Payment[] = [
     created_at: new Date("2025-02-10").toISOString(),
     updated_at: new Date("2025-02-10").toISOString(),
     category: "quarterly",
-    branch: "Hayat",
+    branch: "daycare Hayat",
     program: "childcare",
     monthly_records: [
       {
@@ -756,7 +756,7 @@ export const mockPayments: Payment[] = [
     created_at: new Date("2025-01-25").toISOString(),
     updated_at: new Date("2025-01-25").toISOString(),
     category: "quarterly",
-    branch: "Hayat",
+    branch: "daycare Hayat",
     program: "childcare",
     monthly_records: [
       {
@@ -799,7 +799,7 @@ export const mockPayments: Payment[] = [
     created_at: new Date("2025-02-15").toISOString(),
     updated_at: new Date("2025-02-15").toISOString(),
     category: "monthly",
-    branch: "Semit",
+    branch: "day care summit",
     program: "kindergarten",
     monthly_records: [
       {
@@ -823,7 +823,7 @@ export const mockPayments: Payment[] = [
     created_at: new Date("2025-03-01").toISOString(),
     updated_at: new Date("2025-03-01").toISOString(),
     category: "monthly",
-    branch: "Bulbula",
+    branch: "daycare Bulbula",
     program: "kindergarten",
     monthly_records: [
       {
@@ -847,7 +847,7 @@ export const mockPayments: Payment[] = [
     created_at: new Date("2025-02-28").toISOString(),
     updated_at: new Date("2025-02-28").toISOString(),
     category: "monthly",
-    branch: "Semit",
+    branch: "day care summit",
     program: "kindergarten",
     monthly_records: [
       {
@@ -871,7 +871,7 @@ export const mockPayments: Payment[] = [
     created_at: new Date("2025-01-30").toISOString(),
     updated_at: new Date("2025-01-30").toISOString(),
     category: "monthly",
-    branch: "Megenagna",
+    branch: "Nany center Megenagna",
     program: "preschool",
     monthly_records: [
       {
@@ -895,7 +895,7 @@ export const mockPayments: Payment[] = [
     created_at: new Date("2025-02-05").toISOString(),
     updated_at: new Date("2025-02-05").toISOString(),
     category: "monthly",
-    branch: "Hayat",
+    branch: "daycare Hayat",
     program: "childcare",
     monthly_records: [
       {
@@ -919,7 +919,7 @@ export const mockPayments: Payment[] = [
     created_at: new Date("2025-01-28").toISOString(),
     updated_at: new Date("2025-01-28").toISOString(),
     category: "monthly",
-    branch: "Megenagna",
+    branch: "Nany center Megenagna",
     program: "preschool",
     monthly_records: [
       {
@@ -943,30 +943,35 @@ export const mockPaymentInfo: PaymentInfoData = {
   ],
   recurring: [
     // Bulbula branch
-    { program: "kindergarten", branch: "Bulbula", schedule: "monthly", amount: 3500, discountPercent: 0 },
-    { program: "childcare", branch: "Bulbula", schedule: "monthly", amount: 3200, discountPercent: 5 },
-    { program: "kindergarten", branch: "Bulbula", schedule: "monthly", amount: 3000, discountPercent: 0 },
+    { program: "kindergarten", branch: "daycare Bulbula", schedule: "monthly", amount: 3500, discountPercent: 0 },
+    { program: "childcare", branch: "daycare Bulbula", schedule: "monthly", amount: 3200, discountPercent: 5 },
+    { program: "kindergarten", branch: "daycare Bulbula", schedule: "monthly", amount: 3000, discountPercent: 0 },
 
     // Hayat branch
-    { program: "kindergarten", branch: "Hayat", schedule: "quarterly", amount: 4500, discountPercent: 10 },
-    { program: "childcare", branch: "Hayat", schedule: "quarterly", amount: 4200, discountPercent: 8 },
-    { program: "childcare", branch: "Hayat", schedule: "monthly", amount: 3800, discountPercent: 5 },
+    { program: "kindergarten", branch: "daycare Hayat", schedule: "monthly", amount: 4500, discountPercent: 10 },
+    { program: "childcare", branch: "daycare Hayat", schedule: "monthly", amount: 4200, discountPercent: 8 },
+    { program: "childcare", branch: "daycare Hayat", schedule: "monthly", amount: 3800, discountPercent: 5 },
 
-    // Semit branch
-    { program: "kindergarten", branch: "Semit", schedule: "monthly", amount: 3000, discountPercent: 0 },
-    { program: "childcare", branch: "Semit", schedule: "monthly", amount: 2800, discountPercent: 5 },
-    { program: "childcare", branch: "Semit", schedule: "monthly", amount: 2600, discountPercent: 0 },
+    // Pre school summit branch (quarterly)
+    { program: "kindergarten", branch: "pre school summit", schedule: "quarterly", amount: 4500, discountPercent: 10 },
+    { program: "childcare", branch: "pre school summit", schedule: "quarterly", amount: 4200, discountPercent: 8 },
+    { program: "kindergarten", branch: "pre school summit", schedule: "monthly", amount: 3000, discountPercent: 0 },
+
+    // Day care summit branch (monthly)
+    { program: "kindergarten", branch: "day care summit", schedule: "monthly", amount: 3000, discountPercent: 0 },
+    { program: "childcare", branch: "day care summit", schedule: "monthly", amount: 2800, discountPercent: 5 },
+    { program: "childcare", branch: "day care summit", schedule: "monthly", amount: 2600, discountPercent: 0 },
 
     // Megenagna branch
-    { program: "kindergarten", branch: "Megenagna", schedule: "monthly", amount: 3300, discountPercent: 0 },
-    { program: "childcare", branch: "Megenagna", schedule: "monthly", amount: 3100, discountPercent: 7 },
-    { program: "kindergarten", branch: "Megenagna", schedule: "monthly", amount: 2900, discountPercent: 3 },
+    { program: "kindergarten", branch: "Nany center Megenagna", schedule: "monthly", amount: 3300, discountPercent: 0 },
+    { program: "childcare", branch: "Nany center Megenagna", schedule: "monthly", amount: 3100, discountPercent: 7 },
+    { program: "kindergarten", branch: "Nany center Megenagna", schedule: "monthly", amount: 2900, discountPercent: 3 },
   ],
   discounted: [
     {
       childId: 2,
       childName: "Kaleab Sofia",
-      branch: "Hayat",
+      branch: "daycare Hayat",
       program: "childcare",
       discountPercent: 10,
       note: "Sibling discount for Semit branch child",
@@ -974,7 +979,7 @@ export const mockPaymentInfo: PaymentInfoData = {
     {
       childId: 6,
       childName: "Elias Yohannes",
-      branch: "Hayat",
+      branch: "daycare Hayat",
       program: "childcare",
       discountPercent: 15,
       note: "Staff family discount",
@@ -982,7 +987,7 @@ export const mockPaymentInfo: PaymentInfoData = {
     {
       childId: 8,
       childName: "Daniel Selamawit",
-      branch: "Megenagna",
+      branch: "Nany center Megenagna",
       program: "childcare",
       discountPercent: 5,
       note: "Loyalty discount",
@@ -990,7 +995,7 @@ export const mockPaymentInfo: PaymentInfoData = {
     {
       childId: 10,
       childName: "Samuel Meseret",
-      branch: "Hayat",
+      branch: "daycare Hayat",
       program: "childcare",
       discountPercent: 25,
       note: "Multiple children discount",
@@ -998,7 +1003,7 @@ export const mockPaymentInfo: PaymentInfoData = {
     {
       childId: 12,
       childName: "Joseph Eleni",
-      branch: "Megenagna",
+      branch: "Nany center Megenagna",
       program: "kindergarten",
       discountPercent: 30,
       note: "Maximum discount for low income",
@@ -1006,7 +1011,7 @@ export const mockPaymentInfo: PaymentInfoData = {
     {
       childId: 14,
       childName: "Benjamin Abebe",
-      branch: "Hayat",
+      branch: "daycare Hayat",
       program: "childcare",
       discountPercent: 10,
       note: "Sibling discount",
@@ -1014,7 +1019,7 @@ export const mockPaymentInfo: PaymentInfoData = {
     {
       childId: 16,
       childName: "Gabriel Mihret",
-      branch: "Megenagna",
+      branch: "Nany center Megenagna",
       program: "childcare",
       discountPercent: 15,
       note: "Staff family discount",

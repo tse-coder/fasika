@@ -45,17 +45,21 @@ const Children = () => {
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        <div className="flex flex-col gap-4">
-          <ChildrenHeader search={search} onSearchChange={setSearch} />
-          <ChildrenFilters
-            activeFilter={activeFilter}
-            onActiveFilterChange={setActiveFilter}
-            minAge={minAge}
-            maxAge={maxAge}
-            onMinAgeChange={setMinAge}
-            onMaxAgeChange={setMaxAge}
-            onClearFilters={handleClearFilters}
-          />
+        <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between">
+          <div className="flex-1 w-full">
+            <ChildrenHeader search={search} onSearchChange={setSearch} />
+          </div>
+          <div className="w-full lg:w-auto">
+            <ChildrenFilters
+              activeFilter={activeFilter}
+              onActiveFilterChange={setActiveFilter}
+              minAge={minAge}
+              maxAge={maxAge}
+              onMinAgeChange={setMinAge}
+              onMaxAgeChange={setMaxAge}
+              onClearFilters={handleClearFilters}
+            />
+          </div>
         </div>
 
         <ChildrenList
@@ -65,6 +69,7 @@ const Children = () => {
           showLoadMore={debouncedSearch.trim() === ""}
           minAge={minAge}
           maxAge={maxAge}
+          activeFilter={activeFilter}
           debouncedSearch={debouncedSearch}
           onLoadMore={loadMore}
           onShowInfo={showInfoOverlay}

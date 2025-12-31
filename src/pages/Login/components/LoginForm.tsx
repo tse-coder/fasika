@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import {
   Card,
   CardContent,
@@ -53,21 +54,15 @@ export const LoginForm = ({
               autoComplete="email"
             />
           </div>
-          <div className="space-y-2">
-            <label htmlFor="password" className="text-sm font-medium">
-              Password
-            </label>
-            <Input
-              id="password"
-              type="password"
-              placeholder="Enter your password"
-              value={password}
-              onChange={(e) => onPasswordChange(e.target.value)}
-              required
-              disabled={isLoading}
-              autoComplete="current-password"
-            />
-          </div>
+          <PasswordInput
+            id="password"
+            placeholder="Enter your password"
+            value={password}
+            onChange={(e) => onPasswordChange(e.target.value)}
+            required
+            disabled={isLoading}
+            autoComplete="current-password"
+          />
           <Button type="submit" className="w-full" disabled={isLoading}>
             {isLoading ? (
               <>
