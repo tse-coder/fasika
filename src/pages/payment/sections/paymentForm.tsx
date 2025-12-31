@@ -12,18 +12,21 @@ import { Branch } from "@/types/api.types";
 import { ChildSelection } from "../components/ChildSelection";
 import { PaymentTypeSelector, PaymentCategory } from "../components/PaymentTypeSelector";
 import { AmountInput } from "../components/AmountInput";
-import { MonthQuarterSelector } from "../components/MonthQuarterSelector";
+import { MonthSelector } from "../components/MonthSelector";
+import { QuarterSelector } from "../components/QuarterSelector";
 import { PaymentMethod } from "../components/PaymentMethod";
 import { PaymentNotes } from "../components/PaymentNotes";
+import { FormProvider } from "react-hook-form";
 
 interface PaymentFormProps {
   onSubmit: (data: {
     child_id: string;
     total_amount: number;
-    months: string[];
+    months?: string[];
+    quarters?: Array<{quarter: number, year: number}>;
     method: string;
     notes?: string;
-    branch?: Branch;
+    branch?: string;
     category?: PaymentCategory;
   }) => Promise<void>;
   onCancel: () => void;
@@ -54,6 +57,10 @@ export function PaymentForm({
     boolean | null
   >(null); // null = not checked yet
   const [isCheckingRegistration, setIsCheckingRegistration] = useState(false);
+
+  const [selectedQuarters, setSelectedQuarters] = useState<Array<{quarter: number, year: number}>>([]);
+  const [paidQuarters, setPaidQuarters] = useState<Array<{quarter: number, year: number}>>([]);
+  const [isLoadingPaidQuarters, setIsLoadingPaidQuarters] = useState(false);
 
   const [form, setForm] = useState({
     totalAmount: "",
@@ -250,16 +257,14 @@ export function PaymentForm({
     if (needsRegistration && form.category === "registration") {
       amount = registrationFee ? registrationFee.toString() : "";
       nextMonths = [];
-    } else if (form.category === "recurring") {
-      // For quarterly payments, use the quarterly fee directly, not monthly * 3
-      if (recurringInfo?.schedule === "quarterly") {
+    } else if (form.category === "quarterly")  {
         amount = recurringAmount ? recurringAmount.toString() : "";
         nextMonths = getUpcomingMonths(3);
       } else {
         // Monthly payments
         nextMonths = getUpcomingMonths(1);
         amount = (recurringAmount || 0).toString();
-      }
+      
     }
     // For therapy, after school, and other - don't auto-fill amount
 
@@ -283,7 +288,7 @@ export function PaymentForm({
 
   // Update amount when months change for recurring payments
   useEffect(() => {
-    if (form.category !== "recurring" || !selectedChild) return;
+    if (form.category !== "quarterly" && form.category !== "monthly" || !selectedChild) return;
     
     let amount = "";
     if (recurringInfo?.schedule === "quarterly") {
@@ -302,10 +307,24 @@ export function PaymentForm({
     }
   }, [form.selectedMonths, form.category, recurringAmount, recurringInfo, selectedChild]);
 
+  const handleQuartersChange = (quarters: Array<{quarter: number, year: number}>) => {
+    setSelectedQuarters(quarters);
+    
+    // Clear error when selection changes
+    if (errors.selectedMonths) {
+      setErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors.selectedMonths;
+        return newErrors;
+      });
+    }
+  };
+
   const handleSelectChild = (child: Child) => {
     setSelectedChild(child);
     setChildSearch("");
     setChildList([]);
+    setSelectedQuarters([]); // Reset quarter selection when child changes
   };
 
   const handleLoadMoreChildren = () => {
@@ -325,12 +344,23 @@ export function PaymentForm({
     }
   };
 
+  // Check if current branch should use quarters based on branch name
+  const shouldUseQuarters = useMemo(() => {
+    if (!selectedChild || !currentBranch) return false;
+    return currentBranch === "pre school summit";
+  }, [selectedChild, currentBranch]);
+
+  // Error handlers for child components
+  const handleChildError = (error: string) => {
+    setErrors(prev => ({ ...prev, child: error }));
+  };
+
+  const handleMonthQuarterError = (error: string) => {
+    setErrors(prev => ({ ...prev, selectedMonths: error }));
+  };
+
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
-
-    if (!selectedChild) {
-      newErrors.child = "Please select a child";
-    }
 
     if (!form.category) {
       newErrors.category = "Please select a payment type";
@@ -338,10 +368,6 @@ export function PaymentForm({
 
     if (!form.totalAmount || parseFloat(form.totalAmount) <= 0) {
       newErrors.totalAmount = "Please enter a valid amount";
-    }
-
-    if (form.category === "recurring" && form.selectedMonths.length === 0) {
-      newErrors.selectedMonths = "Please select at least one month";
     }
 
     if (!form.method) {
@@ -365,12 +391,23 @@ export function PaymentForm({
       await onSubmit({
         child_id: selectedChild.id,
         total_amount: parseFloat(form.totalAmount),
-        months:
-          form.category === "registration"
-            ? ["1970-01-01"] // Valid date string, far past, safe(fake for the backend)
-            : form.category === "recurring"
-            ? form.selectedMonths
-            : [], // No months for therapy, after school, other
+        // Handle months based on category
+        months: (() => {
+          switch (form.category) {
+            case "registration":
+              return ["1970-01-01"]; // Required for registration
+            case "monthly":
+              return form.selectedMonths; // Selected months for monthly payments
+            case "quarterly":
+            case "therapy":
+            case "afterschool":
+            case "other":
+            default:
+              return undefined; // No months needed for these categories
+          }
+        })(),
+        // Handle quarters only for quarterly payments
+        quarters: form.category === "quarterly" ? selectedQuarters : undefined,
         method: form.method,
         notes: form.notes.trim() || undefined,
         category: form.category,
@@ -398,6 +435,7 @@ export function PaymentForm({
         isChildNew={isChildNew}
         isChildOld={isChildOld}
         isLoadingPaidMonths={isLoadingPaidMonths}
+        onError={handleChildError}
       />
 
       {selectedChild && (
@@ -422,6 +460,7 @@ export function PaymentForm({
             recurringInfo={recurringInfo}
             getUpcomingMonths={getUpcomingMonths}
             discountPercent={discountPercent}
+            currentBranch={currentBranch}
           />
 
           {/* Show form inputs only when payment type is selected */}
@@ -442,29 +481,34 @@ export function PaymentForm({
                 error={errors.totalAmount}
                 selectedChild={selectedChild}
                 selectedCategory={form.category}
-                isAutoFilled={form.category === "registration" || form.category === "recurring"}
+                isAutoFilled={form.category === "registration" || form.category === "monthly" || form.category === "quarterly"}
               />
 
               {/* Show month/quarter selector only for recurring payments */}
-              {form.category === "recurring" && (
-                <MonthQuarterSelector
-                  selectedChild={selectedChild}
-                  selectedMonths={form.selectedMonths}
-                  onMonthsChange={(months) => {
-                    setForm((prev) => ({ ...prev, selectedMonths: months }));
-                    if (errors.selectedMonths) {
-                      setErrors((prev) => {
-                        const newErrors = { ...prev };
-                        delete newErrors.selectedMonths;
-                        return newErrors;
-                      });
-                    }
-                  }}
-                  paidMonths={paidMonths}
-                  isLoadingPaidMonths={isLoadingPaidMonths}
-                  currentBranch={currentBranch}
-                  error={errors.selectedMonths}
-                />
+              {(form.category === "quarterly" || form.category === "monthly") && (
+                shouldUseQuarters ? (
+                  <QuarterSelector
+                    selectedChild={selectedChild}
+                    onQuartersChange={handleQuartersChange}
+                    paidQuarters={paidQuarters}
+                    isLoadingPaidQuarters={isLoadingPaidQuarters}
+                    selectedQuarters={selectedQuarters}
+                    error={errors.selectedQuarters}
+                    onError={handleMonthQuarterError}
+                  />
+                ) : (
+                  <MonthSelector
+                    selectedChild={selectedChild}
+                    selectedMonths={form.selectedMonths}
+                    onMonthsChange={(months,amount) => {
+                      setForm((prev) => ({ ...prev, selectedMonths: months,totalAmount: String(amount) }));
+                    }}
+                    paidMonths={paidMonths}
+                    isLoadingPaidMonths={isLoadingPaidMonths}
+                    error={errors.selectedMonths}
+                    onError={handleMonthQuarterError}
+                  />
+                )
               )}
 
               <PaymentMethod

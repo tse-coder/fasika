@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 
-export type PaymentCategory = "registration" | "recurring" | "therapy" | "after school" | "other";
+export type PaymentCategory = "registration" | "monthly" | "quarterly" | "therapy" | "afterschool" | "other";
 
 interface PaymentTypeSelectorProps {
   selectedCategory: PaymentCategory;
@@ -13,6 +13,7 @@ interface PaymentTypeSelectorProps {
   recurringInfo: any;
   getUpcomingMonths: (count: number) => string[];
   discountPercent: number;
+  currentBranch: string;
 }
 
 export function PaymentTypeSelector({
@@ -25,6 +26,7 @@ export function PaymentTypeSelector({
   recurringInfo,
   getUpcomingMonths,
   discountPercent,
+  currentBranch,
 }: PaymentTypeSelectorProps) {
   const handleCategoryChange = (category: PaymentCategory) => {
     onCategoryChange(category);
@@ -48,11 +50,11 @@ export function PaymentTypeSelector({
 
         <Button
           type="button"
-          variant={selectedCategory === "recurring" ? "default" : "outline"}
-          onClick={() => handleCategoryChange("recurring")}
+          variant={(selectedCategory === "monthly" || selectedCategory === "quarterly") ? "default" : "outline"}
+          onClick={() => handleCategoryChange("monthly")}
           disabled={!selectedChild || isCheckingRegistration}
         >
-          {recurringInfo?.schedule === "quarterly" ? "Quarterly" : "Monthly"}
+          {currentBranch === "pre school summit" ? "Quarterly" : "Monthly"}
         </Button>
 
         <Button
@@ -66,8 +68,8 @@ export function PaymentTypeSelector({
 
         <Button
           type="button"
-          variant={selectedCategory === "after school" ? "default" : "outline"}
-          onClick={() => handleCategoryChange("after school")}
+          variant={selectedCategory === "afterschool" ? "default" : "outline"}
+          onClick={() => handleCategoryChange("afterschool")}
           disabled={!selectedChild}
         >
           After School

@@ -3,6 +3,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { LoaderIcon } from "@/components/ui/skeleton-card";
 import { Child } from "@/types/child.types";
+import { useEffect } from "react";
 
 interface ChildSelectionProps {
   childSearch: string;
@@ -19,6 +20,7 @@ interface ChildSelectionProps {
   isChildNew: boolean;
   isChildOld: boolean;
   isLoadingPaidMonths: boolean;
+  onError?: (error: string) => void; // Add error callback
 }
 
 export function ChildSelection({
@@ -36,7 +38,24 @@ export function ChildSelection({
   isChildNew,
   isChildOld,
   isLoadingPaidMonths,
+  onError,
 }: ChildSelectionProps) {
+  // Validate child selection
+  const validateSelection = () => {
+    if (!selectedChild && onError) {
+      onError("Please select a child");
+      return false;
+    }
+    if (onError) {
+      onError(""); // Clear error when child is selected
+    }
+    return true;
+  };
+
+  // Call validation when selectedChild changes
+  useEffect(() => {
+    validateSelection();
+  }, [selectedChild]);
   // Local filtering for quick UX
   const filteredChildren = childList.filter(
     (c) =>

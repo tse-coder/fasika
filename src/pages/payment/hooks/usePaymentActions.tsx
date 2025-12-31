@@ -18,6 +18,7 @@ export const usePaymentActions = (
   const { toast } = useToast();
   const { createPayment, deletePayment } = usePayments();
   const openModal = useModalStore((state) => state.openModal);
+  const closeModal = useModalStore((state) => state.closeModal);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [invoiceData, setInvoiceData] = useState<{
@@ -28,22 +29,23 @@ export const usePaymentActions = (
   const handleSubmitPayment = async (data: {
     child_id: string;
     total_amount: number;
-    months: string[];
+    months?: string[];
+    quarters?: Array<{quarter: number, year: number}>;
     method: string;
     notes?: string;
     category: string;
-    branch: Branch
+    branch: string
   }) => {
     setIsSubmitting(true);
     try {
       const response = await createPayment(data);
 
-      const recordedCount = response.recordedMonths.length;
-      const skippedCount = response.skippedMonths.length;
+      const recordedCount = response.recordedMonths?.length || response.recordedQuarters?.length || 0;
+      const skippedCount = (response.skippedMonths?.length || 0) + (response.skippedQuarters?.length || 0);
 
-      let description = `Payment recorded for ${recordedCount} month(s).`;
+      let description = `Payment recorded for ${recordedCount} ${response.recordedQuarters ? "quarter(s)" : "month(s)"}.`;
       if (skippedCount > 0) {
-        description += ` ${skippedCount} month(s) were already paid and skipped.`;
+        description += ` ${skippedCount} ${response.recordedQuarters ? "quarter(s)" : "month(s)"} were already paid and skipped.`;
       }
 
       toast({
@@ -55,12 +57,15 @@ export const usePaymentActions = (
 
       const child = children.find((c) => c.id === data.child_id);
 
-      if (response && response.payment && response.recordedMonths.length > 0) {
+      if (response && response.payment && ((response.recordedMonths && response.recordedMonths.length > 0) || (response.recordedQuarters && response.recordedQuarters.length > 0))) {
         setInvoiceData({
           payment: response,
           child: child || null,
         });
       }
+
+      // Close the overlay after successful payment creation
+      closeModal();
     } catch (err: any) {
       const errorMessage =
         err?.response?.data?.message ||

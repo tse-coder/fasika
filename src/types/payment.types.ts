@@ -35,12 +35,13 @@ export interface PaidMonth {
 export interface NewPaymentRequest {
   child_id: string;
   total_amount: number;
-  months: string[]; // Array of ISO date strings (YYYY-MM-DD format)
+  months?: string[]; // Required for registration and monthly payments, optional for quarterly
+  quarters?: Array<{quarter: number, year: number}>; // Optional - only for quarterly payments
   method: string; // "Cash", "CBE", "Dashen Bank"
 
   notes?: string; // Optional, max 255 characters
   category: string;
-  // branch: Branch;
+  branch: string;
 }
 
 export interface CreatePaymentResponse {
@@ -54,8 +55,10 @@ export interface CreatePaymentResponse {
     created_at: string;
     updated_at: string;
   };
-  recordedMonths: string[]; // Array of months that were successfully recorded
-  skippedMonths: string[]; // Array of months that were skipped (already paid)
+  recordedMonths?: string[]; // Array of months that were successfully recorded (monthly payments)
+  recordedQuarters?: string[]; // Array of quarters that were successfully recorded (quarterly payments)
+  skippedMonths?: string[]; // Array of months that were skipped (already paid)
+  skippedQuarters?: string[]; // Array of quarters that were skipped (already paid)
 }
 
 export interface PaymentsPaginated {
