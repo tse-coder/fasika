@@ -13,9 +13,10 @@ export interface Child {
   branch: Branch;
   program?: Program;
   registrationPaid?: boolean;
-  discountPercent?: number;
+  discount_percent?: number;
   discountNote?: string;
   registerationYear?: number;
+  has_discount: boolean;
 }
 export interface ChildQuery {
   query?: string;

@@ -161,19 +161,33 @@ export function PaymentForm({
 
   const recurringInfo = useMemo(() => {
     if (!paymentInfo || !selectedChild) return null;
-    return paymentInfo.recurring.find(
-      r => r.branch === (selectedChild.branch || currentBranch) &&
-           r.program === (selectedChild.program || "kindergarten")
-    ) || null;
+    return (
+      paymentInfo.recurring.find(
+        (r: any) =>
+          r.branch === (selectedChild.branch || currentBranch) &&
+          r.program === (selectedChild.program || "kindergarten")
+      ) || null
+    );
   }, [paymentInfo, selectedChild, currentBranch]);
 
-  const discountPercent = useMemo(() => selectedChild?.discountNote? selectedChild?.discountPercent ?? recurringInfo?.discountPercent ?? 0:0, [selectedChild, recurringInfo]);
+  const discountPercent = useMemo(() => {
+    // Only apply discount if has_discount is true AND discountPercent exists
+    if (selectedChild?.has_discount) {
+      return selectedChild.discount_percent;
+    }
+    return 0;
+  }, [selectedChild]);
 
   const recurringAmount = useMemo(() => {
-    const base = recurringInfo?.amount || 0;
-    return base - (base * discountPercent) / 100;
-  }, [recurringInfo, discountPercent]);
+    const base = recurringInfo?.amount ?? 0; // ← Safe fallback to 0 if amount missing
 
+    if (discountPercent > 0) {
+      const discounted = base - (base * discountPercent) / 100;
+      return Math.max(0, discounted); // Prevent negative
+    }
+
+    return base; // No discount → full amount
+  }, [recurringInfo, discountPercent]);
   const shouldUseQuarters = currentBranch === "pre school summit";
 
   // Handlers
