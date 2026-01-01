@@ -66,9 +66,9 @@ export const DashboardLayout = ({ children }: DashboardLayoutProps) => {
   const handleUserClick = () => {
     openModal(
       <UserInfoOverlay
-        name={name}
-        email={email}
-        role={role}
+        name={user?.name || user?.email?.split("@")[0] || "User"}
+        email={user?.email || ""}
+        role={user?.role || "USER"}
         onClose={closeModal}
         onUpdate={updateUser}
       />

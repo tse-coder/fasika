@@ -45,6 +45,22 @@ export const fetchPaidMonths = async (
   }
 };
 
+export const fetchPaidQuarters = async (
+  childId: string
+): Promise<Array<{ quarter: number; year: number }>> => {
+  console.log("[API] fetchPaidQuarters - start", childId);
+  try {
+    const res = await apiGet<Array<{ quarter: number; year: number }>>(
+      `/api/payments/${childId}/paid-quarters`
+    );
+    console.log("[API] fetchPaidQuarters - success", res);
+    return res;
+  } catch (err) {
+    console.error("[API] fetchPaidQuarters - error", err);
+    throw err;
+  }
+};
+
 export const createPayment = async (
   payment: NewPaymentRequest
 ): Promise<CreatePaymentResponse> => {

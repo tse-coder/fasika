@@ -42,15 +42,15 @@ export function QuarterSelector({
   if (!selectedChild) return null;
 
   const quarters = [
-    { label: "Q1 (Sep-Nov)", quarter: 1 },
-    { label: "Q2 (Dec-Feb)", quarter: 2 },
-    { label: "Q3 (Mar-May)", quarter: 3 },
-    { label: "Q4 (Jun-Aug)", quarter: 4 },
+    { label: "Q1 (Sep(1)-Nov(15))", quarter: 1 },
+    { label: "Q2 (Nov(16)-Feb(28))", quarter: 2 },
+    { label: "Q3 (Mar(1)-May(15))", quarter: 3 },
+    { label: "Q4 (May(16)-July(31))", quarter: 4 },
   ];
 
   const getCurrentYearForQuarter = (quarter: number): number => {
     const currentYear = new Date().getFullYear();
-    const currentMonth = new Date().getMonth() + 1; // 1-12
+    const currentMonth = new Date().getMonth() + 1;
     
     return currentMonth
   };

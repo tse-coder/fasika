@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Edit, Save, X as CancelIcon } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 interface UserInfoSectionProps {
   name: string;
@@ -19,6 +19,12 @@ export const UserInfoSection = ({
   const [isEditing, setIsEditing] = useState(false);
   const [editName, setEditName] = useState(name);
   const [editEmail, setEditEmail] = useState(email);
+
+  // Update local state when parent props change (after successful update)
+  useEffect(() => {
+    setEditName(name);
+    setEditEmail(email);
+  }, [name, email]);
 
   const handleSave = () => {
     if (onUpdate) {

@@ -101,4 +101,5 @@ export interface PaymentState {
   deletePayment: (id: number) => Promise<void>;
   isLoading: boolean;
   error: string | null;
+  fetchPaidQuarters: (childId: string) => Promise<Array<{ quarter: number; year: number }>>;
 }

@@ -7,6 +7,7 @@ import { useState } from "react";
 import { useAuth } from "@/stores/auth.store";
 import { useToast } from "@/hooks/use-toast";
 import { resetUserPassword } from "@/api/admin.api";
+import { changePassword } from "@/api/auth.api";
 
 export const PasswordChangeSection = () => {
   const { user } = useAuth();
@@ -30,20 +31,38 @@ export const PasswordChangeSection = () => {
       setError("New password must be at least 8 characters");
       return;
     }
+    if (!currentPassword) {
+      setError("Current password is required");
+      return;
+    }
 
     setIsChanging(true);
     setError("");
 
     try {
-      await resetUserPassword(user.id, { newPassword });
+      // Use the new changePassword API that validates current password
+      await changePassword({
+        currentPassword,
+        newPassword,
+        userId: user.id,
+        userEmail: user.email
+      });
+      
       toast({
         variant: "default",
         description: "Password changed successfully",
       });
       resetForm();
       setIsOpen(false); // Close after success
-    } catch (err) {
-      setError("Failed to change password");
+    } catch (err: any) {
+      // Handle specific error messages from backend
+      if (err?.response?.status === 401) {
+        setError("Current password is incorrect");
+      } else if (err?.response?.data?.message) {
+        setError(err.response.data.message);
+      } else {
+        setError("Failed to change password");
+      }
     } finally {
       setIsChanging(false);
     }

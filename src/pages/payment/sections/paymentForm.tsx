@@ -1,4 +1,6 @@
-import { useState, useEffect, useRef, useMemo, useCallback } from "react";
+// PaymentForm.tsx
+
+import { useState, useEffect, useRef, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { LoaderIcon } from "@/components/ui/skeleton-card";
 import { useChildren } from "@/stores/children.store";
@@ -8,7 +10,7 @@ import { usePaymentInfoStore } from "@/stores/paymentInfo.store";
 import type { Child } from "@/types/child.types";
 import type { PaidMonth, PaymentsPaginated } from "@/types/payment.types";
 import { fetchPayments } from "@/api/payment.api";
-import { Branch } from "@/types/api.types";
+
 import { ChildSelection } from "../components/ChildSelection";
 import { PaymentTypeSelector, PaymentCategory } from "../components/PaymentTypeSelector";
 import { AmountInput } from "../components/AmountInput";
@@ -16,14 +18,22 @@ import { MonthSelector } from "../components/MonthSelector";
 import { QuarterSelector } from "../components/QuarterSelector";
 import { PaymentMethod } from "../components/PaymentMethod";
 import { PaymentNotes } from "../components/PaymentNotes";
-import { FormProvider } from "react-hook-form";
+
+import {
+  getUpcomingQuarters,
+  getUpcomingMonths,
+  validatePaymentForm,
+  handleChildError,
+  handleMonthQuarterError,
+  handleQuartersChange,
+} from "../helpers/paymentFormHelpers";
 
 interface PaymentFormProps {
   onSubmit: (data: {
     child_id: string;
     total_amount: number;
     months?: string[];
-    quarters?: Array<{quarter: number, year: number}>;
+    quarters?: Array<{ quarter: number; year: number }>;
     method: string;
     notes?: string;
     branch?: string;
@@ -33,15 +43,13 @@ interface PaymentFormProps {
   isLoading?: boolean;
 }
 
-const PAYMENT_METHODS = ["Cash", "CBE", "Dashen Bank"];
-
 export function PaymentForm({
   onSubmit,
   onCancel,
   isLoading = false,
 }: PaymentFormProps) {
   const { fetchChildren, isLoading: childrenLoading } = useChildren();
-  const { fetchPaidMonths } = usePayments();
+  const { fetchPaidMonths, fetchPaidQuarters } = usePayments();
   const { currentBranch } = useBranchStore();
   const { data: paymentInfo, load: loadPaymentInfo } = usePaymentInfoStore();
 
@@ -50,17 +58,14 @@ export function PaymentForm({
   const [childList, setChildList] = useState<Child[]>([]);
   const [selectedChild, setSelectedChild] = useState<Child | null>(null);
   const [paidMonths, setPaidMonths] = useState<PaidMonth[]>([]);
+  const [paidQuarters, setPaidQuarters] = useState<Array<{ quarter: number; year: number }>>([]);
   const [isLoadingPaidMonths, setIsLoadingPaidMonths] = useState(false);
+  const [isLoadingPaidQuarters, setIsLoadingPaidQuarters] = useState(false);
+  const [hasRegistrationPaid, setHasRegistrationPaid] = useState<boolean | null>(null);
+  const [isCheckingRegistration, setIsCheckingRegistration] = useState(false);
+  const [selectedQuarters, setSelectedQuarters] = useState<Array<{ quarter: number; year: number }>>([]);
   const [childPage, setChildPage] = useState(1);
   const [isLoadingMoreChildren, setIsLoadingMoreChildren] = useState(false);
-  const [hasRegistrationPaid, setHasRegistrationPaid] = useState<
-    boolean | null
-  >(null); // null = not checked yet
-  const [isCheckingRegistration, setIsCheckingRegistration] = useState(false);
-
-  const [selectedQuarters, setSelectedQuarters] = useState<Array<{quarter: number, year: number}>>([]);
-  const [paidQuarters, setPaidQuarters] = useState<Array<{quarter: number, year: number}>>([]);
-  const [isLoadingPaidQuarters, setIsLoadingPaidQuarters] = useState(false);
 
   const [form, setForm] = useState({
     totalAmount: "",
@@ -76,14 +81,12 @@ export function PaymentForm({
   const listRef = useRef<HTMLDivElement | null>(null);
   const fetchingRef = useRef(false);
 
-  // Ensure payment info available for autofill
+  // Load payment info
   useEffect(() => {
-    if (!paymentInfo) {
-      loadPaymentInfo();
-    }
+    if (!paymentInfo) loadPaymentInfo();
   }, [paymentInfo, loadPaymentInfo]);
 
-  // Debounce child search
+  // Debounce search
   useEffect(() => {
     if (debounceTimer.current) clearTimeout(debounceTimer.current);
     debounceTimer.current = window.setTimeout(() => {
@@ -95,23 +98,18 @@ export function PaymentForm({
     };
   }, [childSearch]);
 
-  // Fetch children when search changes
+  // Fetch children
   useEffect(() => {
     let cancelled = false;
     const loadChildren = async () => {
       try {
-        const params =
-          debouncedChildSearch.trim().length > 0
-            ? { query: debouncedChildSearch.trim(), branch: currentBranch }
-            : { page: childPage, branch: currentBranch };
-
+        const params = debouncedChildSearch.trim()
+          ? { query: debouncedChildSearch.trim(), branch: currentBranch }
+          : { page: childPage, branch: currentBranch };
         const data = (await fetchChildren(params)) || [];
         if (cancelled) return;
-
-        setChildList((prev) =>
-          childPage === 1
-            ? data
-            : [...prev, ...data.filter((c) => !prev.some((p) => p.id === c.id))]
+        setChildList(prev =>
+          childPage === 1 ? data : [...prev, ...data.filter(c => !prev.some(p => p.id === c.id))]
         );
         setIsLoadingMoreChildren(false);
       } catch (err) {
@@ -119,304 +117,155 @@ export function PaymentForm({
         setIsLoadingMoreChildren(false);
       }
     };
-
     loadChildren();
-    return () => {
-      cancelled = true;
-    };
+    return () => { cancelled = true; };
   }, [debouncedChildSearch, childPage, fetchChildren, currentBranch]);
 
-  // Fetch paid months when child is selected
+  // Fetch paid data + registration check
   useEffect(() => {
     if (!selectedChild) {
       setPaidMonths([]);
+      setPaidQuarters([]);
       setHasRegistrationPaid(null);
+      setSelectedQuarters([]);
       return;
     }
 
     setIsLoadingPaidMonths(true);
     fetchPaidMonths(selectedChild.id)
-      .then((months) => {
-        setPaidMonths(months);
-      })
-      .catch((err) => {
-        console.error("[PaymentForm] Failed to fetch paid months", err);
-        setPaidMonths([]);
-      })
-      .finally(() => {
-        setIsLoadingPaidMonths(false);
-      });
-    setIsCheckingRegistration(true);
-    fetchPayments({
-      child_id: selectedChild.id,
-      limit: 50, // enough to find registration payment
-      order: "desc",
-    })
-      .then((paginated: PaymentsPaginated) => {
-        const payments = paginated.data;
-        const hasRegPayment = payments.some(
-          (p) => p.category === "registration"
-        );
-        setHasRegistrationPaid(hasRegPayment);
-      })
-      .catch((err) => {
-        console.error(
-          "[PaymentForm] Failed to check registration payment",
-          err
-        );
-        setHasRegistrationPaid(false); // assume not paid on error
-      })
-      .finally(() => setIsCheckingRegistration(false));
-  }, [selectedChild, fetchPaidMonths]);
+      .then(setPaidMonths)
+      .catch(() => setPaidMonths([]))
+      .finally(() => setIsLoadingPaidMonths(false));
 
+    setIsLoadingPaidQuarters(true);
+    fetchPaidQuarters(selectedChild.id)
+      .then(setPaidQuarters)
+      .catch(() => setPaidQuarters([]))
+      .finally(() => setIsLoadingPaidQuarters(false));
+
+    setIsCheckingRegistration(true);
+    fetchPayments({ child_id: selectedChild.id, limit: 50, order: "desc" })
+      .then((paginated: PaymentsPaginated) => {
+        setHasRegistrationPaid(paginated.data.some(p => p.category === "registration"));
+      })
+      .catch(() => setHasRegistrationPaid(false))
+      .finally(() => setIsCheckingRegistration(false));
+  }, [selectedChild, fetchPaidMonths, fetchPaidQuarters]);
+
+  // Computed values
   const registrationFee = useMemo(() => {
     if (!paymentInfo || !selectedChild) return 0;
-    const match = paymentInfo.registration.find(
-      (r) => r.program === (selectedChild.program || "kindergarten")
-    );
+    const match = paymentInfo.registration.find(r => r.program === (selectedChild.program || "kindergarten"));
     return match?.newFee || 0;
   }, [paymentInfo, selectedChild]);
 
   const recurringInfo = useMemo(() => {
     if (!paymentInfo || !selectedChild) return null;
-    return (
-      paymentInfo.recurring.find(
-        (r) =>
-          r.branch === (selectedChild.branch || currentBranch) &&
-          r.program === (selectedChild.program || "kindergarten")
-      ) || null
-    );
+    return paymentInfo.recurring.find(
+      r => r.branch === (selectedChild.branch || currentBranch) &&
+           r.program === (selectedChild.program || "kindergarten")
+    ) || null;
   }, [paymentInfo, selectedChild, currentBranch]);
 
-  const discountPercent = useMemo(() => {
-    return (
-      selectedChild?.discountPercent ?? recurringInfo?.discountPercent ?? 0
-    );
-  }, [selectedChild, recurringInfo]);
+  const discountPercent = useMemo(() => selectedChild?.discountPercent ?? recurringInfo?.discountPercent ?? 0, [selectedChild, recurringInfo]);
 
   const recurringAmount = useMemo(() => {
     const base = recurringInfo?.amount || 0;
-    const discounted = base - (base * discountPercent) / 100;
-    return discounted > 0 ? discounted : 0;
+    return base - (base * discountPercent) / 100;
   }, [recurringInfo, discountPercent]);
 
-  const isChildNew = useMemo(() => {
-    if (!selectedChild) return false;
-    const currentYear = new Date().getFullYear();
-    return (
-      !selectedChild.registerationYear ||
-      selectedChild.registerationYear >= currentYear
-    );
-  }, [selectedChild]);
+  const shouldUseQuarters = currentBranch === "pre school summit";
 
-  const isChildOld = useMemo(() => {
-    if (!selectedChild) return false;
-    const currentYear = new Date().getFullYear();
-    return (
-      selectedChild.registerationYear &&
-      selectedChild.registerationYear < currentYear
-    );
-  }, [selectedChild]);
-
-  const getUpcomingMonths = useCallback(
-    (count: number) => {
-      const paidKeys = new Set(
-        paidMonths.map(
-          (m) => `${m.year}-${String(m.month).padStart(2, "0")}-01`
-        )
-      );
-      const months: string[] = [];
-      const cursor = new Date();
-      cursor.setDate(1);
-      while (months.length < count) {
-        const key = `${cursor.getFullYear()}-${String(
-          cursor.getMonth() + 1
-        ).padStart(2, "0")}-01`;
-        if (!paidKeys.has(key)) {
-          months.push(key);
-        }
-        cursor.setMonth(cursor.getMonth() + 1);
-      }
-      return months;
-    },
-    [paidMonths]
-  );
-
-  // Prefill form when child/payment info/paid months change
-  useEffect(() => {
-    if (!selectedChild || !paymentInfo || !form.category) return;
-
-    const needsRegistration =
-      hasRegistrationPaid === null
-        ? selectedChild.registrationPaid === false // old fallback
-        : !hasRegistrationPaid; // true if NO registration payment found
-
-    let amount = "";
-    let nextMonths: string[] = [];
-
-    if (needsRegistration && form.category === "registration") {
-      amount = registrationFee ? registrationFee.toString() : "";
-      nextMonths = [];
-    } else if (form.category === "quarterly")  {
-        amount = recurringAmount ? recurringAmount.toString() : "";
-        nextMonths = getUpcomingMonths(3);
-      } else {
-        // Monthly payments
-        nextMonths = getUpcomingMonths(1);
-        amount = (recurringAmount || 0).toString();
-      
-    }
-    // For therapy, after school, and other - don't auto-fill amount
-
-    setForm((prev) => ({
-      ...prev,
-      totalAmount: amount,
-      selectedMonths: nextMonths,
-    }));
-    setErrors({});
-  }, [
-    selectedChild,
-    paymentInfo,
-    paidMonths,
-    registrationFee,
-    recurringAmount,
-    recurringInfo,
-    getUpcomingMonths,
-    hasRegistrationPaid,
-    form.category,
-  ]);
-
-  // Update amount when months change for recurring payments
-  useEffect(() => {
-    if (form.category !== "quarterly" && form.category !== "monthly" || !selectedChild) return;
-    
-    let amount = "";
-    if (recurringInfo?.schedule === "quarterly") {
-      // For quarterly, charge the quarterly fee regardless of how many months selected
-      amount = recurringAmount ? recurringAmount.toString() : "";
-    } else {
-      // For monthly, charge per month selected
-      amount = ((recurringAmount || 0) * Math.max(form.selectedMonths.length || 1, 1)).toString();
-    }
-    
-    if (form.totalAmount !== amount) {
-      setForm((prev) => ({
-        ...prev,
-        totalAmount: amount,
-      }));
-    }
-  }, [form.selectedMonths, form.category, recurringAmount, recurringInfo, selectedChild]);
-
-  const handleQuartersChange = (quarters: Array<{quarter: number, year: number}>) => {
-    setSelectedQuarters(quarters);
-    
-    // Clear error when selection changes
-    if (errors.selectedMonths) {
-      setErrors(prev => {
-        const newErrors = { ...prev };
-        delete newErrors.selectedMonths;
-        return newErrors;
-      });
-    }
-  };
+  // Handlers
+  const onQuartersChange = handleQuartersChange(setErrors, setSelectedQuarters);
+  const onMonthQuarterError = handleMonthQuarterError(setErrors);
+  const onChildError = handleChildError(setErrors);
 
   const handleSelectChild = (child: Child) => {
     setSelectedChild(child);
     setChildSearch("");
     setChildList([]);
-    setSelectedQuarters([]); // Reset quarter selection when child changes
+    setSelectedQuarters([]);
   };
 
   const handleLoadMoreChildren = () => {
     if (fetchingRef.current || childrenLoading) return;
     fetchingRef.current = true;
     setIsLoadingMoreChildren(true);
-    setChildPage((p) => p + 1);
+    setChildPage(p => p + 1);
   };
 
   const handleScroll = () => {
-    if (fetchingRef.current || childrenLoading) return;
+    if (fetchingRef.current || childrenLoading || !listRef.current) return;
     const el = listRef.current;
-    if (!el) return;
-    const threshold = 120;
-    if (el.scrollHeight - el.scrollTop - el.clientHeight <= threshold) {
+    if (el.scrollHeight - el.scrollTop - el.clientHeight <= 120) {
       handleLoadMoreChildren();
     }
   };
 
-  // Check if current branch should use quarters based on branch name
-  const shouldUseQuarters = useMemo(() => {
-    if (!selectedChild || !currentBranch) return false;
-    return currentBranch === "pre school summit";
-  }, [selectedChild, currentBranch]);
+  // Auto-prefill
+  useEffect(() => {
+    if (!selectedChild || !form.category || recurringAmount === 0) return;
 
-  // Error handlers for child components
-  const handleChildError = (error: string) => {
-    setErrors(prev => ({ ...prev, child: error }));
-  };
+    let amount = "";
+    let nextMonths: string[] = [];
+    let nextQuarters: Array<{ quarter: number; year: number }> = [];
 
-  const handleMonthQuarterError = (error: string) => {
-    setErrors(prev => ({ ...prev, selectedMonths: error }));
-  };
-
-  const validateForm = (): boolean => {
-    const newErrors: Record<string, string> = {};
-
-    if (!form.category) {
-      newErrors.category = "Please select a payment type";
+    if (form.category === "registration" && !hasRegistrationPaid) {
+      amount = registrationFee.toString();
+    } else if (form.category === "quarterly") {
+      nextQuarters = getUpcomingQuarters(1, paidQuarters);
+      amount = (recurringAmount * nextQuarters.length).toString();
+      setSelectedQuarters(nextQuarters);
+    } else if (form.category === "monthly") {
+      nextMonths = getUpcomingMonths(1, paidMonths);
+      amount = recurringAmount.toString();
     }
 
-    if (!form.totalAmount || parseFloat(form.totalAmount) <= 0) {
-      newErrors.totalAmount = "Please enter a valid amount";
-    }
+    setForm(prev => ({ ...prev, totalAmount: amount, selectedMonths: nextMonths }));
+    setErrors({});
+  }, [selectedChild, form.category, recurringAmount, registrationFee, hasRegistrationPaid, paidQuarters, paidMonths]);
 
-    if (!form.method) {
-      newErrors.method = "Please select a payment method";
+  // Update amount on selection change
+  useEffect(() => {
+    if (form.category === "quarterly" && recurringAmount) {
+      const newAmount = (recurringAmount * (selectedQuarters.length || 1)).toString();
+      if (form.totalAmount !== newAmount) {
+        setForm(prev => ({ ...prev, totalAmount: newAmount }));
+      }
     }
+  }, [selectedQuarters, form.category, recurringAmount]);
 
-    if (form.notes && form.notes.length > 255) {
-      newErrors.notes = "Notes must be 255 characters or less";
+  useEffect(() => {
+    if (form.category === "monthly" && recurringAmount) {
+      const newAmount = (recurringAmount * (form.selectedMonths.length || 1)).toString();
+      if (form.totalAmount !== newAmount) {
+        setForm(prev => ({ ...prev, totalAmount: newAmount }));
+      }
     }
+  }, [form.selectedMonths, form.category, recurringAmount]);
 
+  const validateForm = () => {
+    const newErrors = validatePaymentForm(form, selectedChild, selectedQuarters, form.selectedMonths);
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
     if (!validateForm() || !selectedChild || !form.category) return;
 
-    try {
-      await onSubmit({
-        child_id: selectedChild.id,
-        total_amount: parseFloat(form.totalAmount),
-        // Handle months based on category
-        months: (() => {
-          switch (form.category) {
-            case "registration":
-              return ["1970-01-01"]; // Required for registration
-            case "monthly":
-              return form.selectedMonths; // Selected months for monthly payments
-            case "quarterly":
-            case "therapy":
-            case "afterschool":
-            case "other":
-            default:
-              return undefined; // No months needed for these categories
-          }
-        })(),
-        // Handle quarters only for quarterly payments
-        quarters: form.category === "quarterly" ? selectedQuarters : undefined,
-        method: form.method,
-        notes: form.notes.trim() || undefined,
-        category: form.category,
-        branch: currentBranch,
-      });
-      onCancel()
-    } catch (err) {
-      // Error handling is done in parent component
-    }
+    await onSubmit({
+      child_id: selectedChild.id,
+      total_amount: parseFloat(form.totalAmount),
+      months: form.category === "monthly" ? form.selectedMonths : form.category === "registration" ? ["1970-01-01"] : undefined,
+      quarters: form.category === "quarterly" ? selectedQuarters : undefined,
+      method: form.method,
+      notes: form.notes.trim() || undefined,
+      category: form.category,
+      branch: currentBranch,
+    });
+    onCancel();
   };
 
   return (
@@ -433,24 +282,22 @@ export function PaymentForm({
         error={errors.child}
         listRef={listRef}
         onScroll={handleScroll}
-        isChildNew={isChildNew}
-        isChildOld={isChildOld}
         isLoadingPaidMonths={isLoadingPaidMonths}
-        onError={handleChildError}
+        onError={onChildError}
+        isChildNew={false}
+        isChildOld={false}
       />
 
       {selectedChild && (
         <>
-          {/* Show payment type selector for all cases */}
           <PaymentTypeSelector
             selectedCategory={form.category}
             onCategoryChange={(category) => {
-              setForm((prev) => ({ ...prev, category }));
+              setForm(prev => ({ ...prev, category }));
               if (errors.selectedMonths) {
-                setErrors((prev) => {
-                  const newErrors = { ...prev };
-                  delete newErrors.selectedMonths;
-                  return newErrors;
+                setErrors(prev => {
+                  const { selectedMonths, ...rest } = prev;
+                  return rest;
                 });
               }
             }}
@@ -459,68 +306,64 @@ export function PaymentForm({
             selectedChild={selectedChild}
             registrationFee={registrationFee}
             recurringInfo={recurringInfo}
-            getUpcomingMonths={getUpcomingMonths}
+            getUpcomingMonths={getUpcomingMonths.bind(null, 1, paidMonths)}
             discountPercent={discountPercent}
             currentBranch={currentBranch}
           />
 
-          {/* Show form inputs only when payment type is selected */}
           {form.category && (
             <>
               <AmountInput
                 amount={form.totalAmount}
                 onAmountChange={(value) => {
-                  setForm({ ...form, totalAmount: value });
+                  setForm(prev => ({ ...prev, totalAmount: value }));
                   if (errors.totalAmount) {
-                    setErrors((prev) => {
-                      const newErrors = { ...prev };
-                      delete newErrors.totalAmount;
-                      return newErrors;
+                    setErrors(prev => {
+                      const { totalAmount, ...rest } = prev;
+                      return rest;
                     });
                   }
                 }}
                 error={errors.totalAmount}
                 selectedChild={selectedChild}
                 selectedCategory={form.category}
-                isAutoFilled={form.category === "registration" || form.category === "monthly" || form.category === "quarterly"}
+                isAutoFilled={["registration", "monthly", "quarterly"].includes(form.category)}
               />
 
-              {/* Show month/quarter selector only for recurring payments */}
-              {(form.category === "quarterly" || form.category === "monthly") && (
-                shouldUseQuarters ? (
-                  <QuarterSelector
-                    selectedChild={selectedChild}
-                    onQuartersChange={handleQuartersChange}
-                    paidQuarters={paidQuarters}
-                    isLoadingPaidQuarters={isLoadingPaidQuarters}
-                    selectedQuarters={selectedQuarters}
-                    error={errors.selectedQuarters}
-                    onError={handleMonthQuarterError}
-                  />
-                ) : (
-                  <MonthSelector
-                    selectedChild={selectedChild}
-                    selectedMonths={form.selectedMonths}
-                    onMonthsChange={(months,amount) => {
-                      setForm((prev) => ({ ...prev, selectedMonths: months,totalAmount: String(amount) }));
-                    }}
-                    paidMonths={paidMonths}
-                    isLoadingPaidMonths={isLoadingPaidMonths}
-                    error={errors.selectedMonths}
-                    onError={handleMonthQuarterError}
-                  />
-                )
+              {(form.category === "quarterly" && shouldUseQuarters) && (
+                <QuarterSelector
+                  selectedChild={selectedChild}
+                  onQuartersChange={onQuartersChange}
+                  paidQuarters={paidQuarters}
+                  isLoadingPaidQuarters={isLoadingPaidQuarters}
+                  selectedQuarters={selectedQuarters}
+                  error={errors.selectedMonths}
+                  onError={onMonthQuarterError}
+                />
+              )}
+
+              {(form.category === "monthly" && !shouldUseQuarters) && (
+                <MonthSelector
+                  selectedChild={selectedChild}
+                  selectedMonths={form.selectedMonths}
+                  onMonthsChange={(months, amount) => {
+                    setForm(prev => ({ ...prev, selectedMonths: months, totalAmount: String(amount) }));
+                  }}
+                  paidMonths={paidMonths}
+                  isLoadingPaidMonths={isLoadingPaidMonths}
+                  error={errors.selectedMonths}
+                  onError={onMonthQuarterError}
+                />
               )}
 
               <PaymentMethod
                 method={form.method}
                 onMethodChange={(value) => {
-                  setForm({ ...form, method: value });
+                  setForm(prev => ({ ...prev, method: value }));
                   if (errors.method) {
-                    setErrors((prev) => {
-                      const newErrors = { ...prev };
-                      delete newErrors.method;
-                      return newErrors;
+                    setErrors(prev => {
+                      const { method, ...rest } = prev;
+                      return rest;
                     });
                   }
                 }}
@@ -531,12 +374,11 @@ export function PaymentForm({
               <PaymentNotes
                 notes={form.notes}
                 onNotesChange={(value) => {
-                  setForm({ ...form, notes: value });
+                  setForm(prev => ({ ...prev, notes: value }));
                   if (errors.notes) {
-                    setErrors((prev) => {
-                      const newErrors = { ...prev };
-                      delete newErrors.notes;
-                      return newErrors;
+                    setErrors(prev => {
+                      const { notes, ...rest } = prev;
+                      return rest;
                     });
                   }
                 }}
@@ -549,13 +391,7 @@ export function PaymentForm({
       )}
 
       <div className="flex gap-3 pt-2">
-        <Button
-          type="button"
-          variant="outline"
-          onClick={onCancel}
-          className="flex-1"
-          disabled={isLoading}
-        >
+        <Button type="button" variant="outline" onClick={onCancel} className="flex-1" disabled={isLoading}>
           Cancel
         </Button>
         <Button type="submit" className="flex-1" disabled={isLoading || !selectedChild || !form.category}>

@@ -1,7 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Download, Printer, X } from "lucide-react";
 import { useRef } from "react";
-// @ts-expect-error - html2pdf doesn't have proper types
 import html2pdf from "html2pdf.js";
 import { InvoiceTemplate } from "./invoiceTemplate";
 import type { Child } from "@/types/child.types";
@@ -105,13 +104,13 @@ export function InvoiceOverlay({
   const invoiceData = {
     child: child
       ? {
-          id: child.id,
+          id: parseInt(child.id),
           fname: child.fname,
           lname: child.lname,
         }
       : null,
     total_amount: parseFloat(payment.payment.total_amount),
-    months: payment.recordedMonths,
+    months: payment.recordedMonths || payment.recordedQuarters || [],
     method: payment.payment.method,
     notes: payment.payment.notes || undefined,
     invoice_no: String(payment.payment.id).padStart(5, "0"),

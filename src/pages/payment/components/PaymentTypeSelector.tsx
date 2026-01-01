@@ -48,14 +48,25 @@ export function PaymentTypeSelector({
           </Button>
         )}
 
-        <Button
-          type="button"
-          variant={(selectedCategory === "monthly" || selectedCategory === "quarterly") ? "default" : "outline"}
-          onClick={() => handleCategoryChange("monthly")}
-          disabled={!selectedChild || isCheckingRegistration}
-        >
-          {currentBranch === "pre school summit" ? "Quarterly" : "Monthly"}
-        </Button>
+        {currentBranch === "pre school summit" ? (
+          <Button
+            type="button"
+            variant={selectedCategory === "quarterly" ? "default" : "outline"}
+            onClick={() => handleCategoryChange("quarterly")}
+            disabled={!selectedChild || isCheckingRegistration}
+          >
+            Quarterly
+          </Button>
+        ) : (
+          <Button
+            type="button"
+            variant={selectedCategory === "monthly" ? "default" : "outline"}
+            onClick={() => handleCategoryChange("monthly")}
+            disabled={!selectedChild || isCheckingRegistration}
+          >
+            Monthly
+          </Button>
+        )}
 
         <Button
           type="button"
