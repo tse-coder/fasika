@@ -131,12 +131,6 @@ export function MonthSelector({
       {error && (
         <p className="text-red-600 text-sm">{error}</p>
       )}
-      
-      {paidMonths.length > 0 && (
-        <p className="text-xs text-muted-foreground">
-          {paidMonths.length} month(s) already paid (disabled)
-        </p>
-      )}
     </div>
   );
 }

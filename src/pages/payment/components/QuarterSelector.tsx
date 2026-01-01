@@ -128,12 +128,6 @@ export function QuarterSelector({
       {error && (
         <p className="text-red-600 text-sm">{error}</p>
       )}
-      
-      {paidQuarters.length > 0 && (
-        <p className="text-xs text-muted-foreground">
-          {paidQuarters.length} quarter(s) already paid (disabled)
-        </p>
-      )}
     </div>
   );
 }

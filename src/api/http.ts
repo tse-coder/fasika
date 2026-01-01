@@ -1,7 +1,7 @@
 import axios, { AxiosRequestConfig } from "axios";
 // base url with vite_env
-const BASE_URL = import.meta.env.VITE_API_BASE_URL;
-// const BASE_URL = "http://localhost:3000";
+// const BASE_URL = import.meta.env.VITE_API_BASE_URL;
+const BASE_URL = "http://localhost:3000";
 
 const client = axios.create({ baseURL: BASE_URL });
 

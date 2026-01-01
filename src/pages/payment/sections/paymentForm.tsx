@@ -167,7 +167,7 @@ export function PaymentForm({
     ) || null;
   }, [paymentInfo, selectedChild, currentBranch]);
 
-  const discountPercent = useMemo(() => selectedChild?.discountPercent ?? recurringInfo?.discountPercent ?? 0, [selectedChild, recurringInfo]);
+  const discountPercent = useMemo(() => selectedChild?.discountNote? selectedChild?.discountPercent ?? recurringInfo?.discountPercent ?? 0:0, [selectedChild, recurringInfo]);
 
   const recurringAmount = useMemo(() => {
     const base = recurringInfo?.amount || 0;
