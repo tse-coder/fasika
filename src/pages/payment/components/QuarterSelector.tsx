@@ -52,14 +52,7 @@ export function QuarterSelector({
     const currentYear = new Date().getFullYear();
     const currentMonth = new Date().getMonth() + 1; // 1-12
     
-    // Determine academic year based on quarter
-    if (quarter === 1 || quarter === 2) {
-      // Q1 (Sep-Nov) and Q2 (Dec-Feb) belong to previous academic year
-      return currentMonth <= 2 ? currentYear - 1 : currentYear;
-    } else {
-      // Q3 (Mar-May) and Q4 (Jun-Aug) belong to current academic year
-      return currentMonth <= 8 ? currentYear : currentYear + 1;
-    }
+    return currentMonth
   };
 
   const handleQuarterToggle = (quarter: { label: string; quarter: number }) => {

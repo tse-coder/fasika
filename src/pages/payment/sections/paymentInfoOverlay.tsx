@@ -22,6 +22,7 @@ import {
   FileText,
 } from "lucide-react";
 import { formatDate } from "date-fns";
+import { PaymentTypeSelector } from "../components/PaymentTypeSelector";
 
 type PaymentInfoOverlayProps = {
   payment: Payment;
@@ -145,51 +146,48 @@ export function PaymentInfoOverlay({
       </div>
 
       {/* Monthly Records if the payment is not for registration*/}
-      {(false)?(
-              <div className="space-y-4">
-        <h3 className="font-semibold text-lg flex items-center gap-2">
-          <FileText className="w-5 h-5" />
-          Monthly Records ({payment.monthly_records.length})
-        </h3>
+      {payment.category == "monthly" ? (
+        <div className="space-y-4">
+          <h3 className="font-semibold text-lg flex items-center gap-2">
+            <FileText className="w-5 h-5" />
+            Monthly Records ({payment.monthly_records.length})
+          </h3>
 
-        {payment.monthly_records.length === 0 ? (
-          <p className="text-sm text-muted-foreground p-4 bg-muted/30 rounded-lg">
-            No monthly records found
-          </p>
-        ) : (
-          <div className="space-y-2">
-            {payment.monthly_records.map((record) => (
-              <div
-                key={record.id}
-                className="p-4 rounded-lg border bg-card shadow-sm"
-              >
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="font-medium">{formatMonth(record.month)}</p>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Record ID: {record.id}
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <p className="font-semibold">
-                      ETB {parseFloat(record.amount).toLocaleString()}
-                    </p>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      {formatDate(record.created_at, "PP")}
-                    </p>
+          {payment.monthly_records.length === 0 ? (
+            <p className="text-sm text-muted-foreground p-4 bg-muted/30 rounded-lg">
+              No monthly records found
+            </p>
+          ) : (
+            <div className="space-y-2">
+              {payment.monthly_records.map((record) => (
+                <div
+                  key={record.id}
+                  className="p-4 rounded-lg border bg-card shadow-sm"
+                >
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="font-medium">{formatMonth(record.month)}</p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Record ID: {record.id}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-semibold">
+                        ETB {parseFloat(record.amount).toLocaleString()}
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {formatDate(record.created_at, "PP")}
+                      </p>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-      ):(
-        <div className="font-bold">
-          Registration Fee
+              ))}
+            </div>
+          )}
         </div>
+      ) : (
+        <div className="font-bold"><Badge>{payment.category}</Badge></div>
       )}
-
 
       {/* Notes */}
       {payment.notes && (

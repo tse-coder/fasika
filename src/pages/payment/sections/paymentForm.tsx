@@ -413,6 +413,7 @@ export function PaymentForm({
         category: form.category,
         branch: currentBranch,
       });
+      onCancel()
     } catch (err) {
       // Error handling is done in parent component
     }
