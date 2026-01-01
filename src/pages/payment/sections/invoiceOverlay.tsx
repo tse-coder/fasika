@@ -110,7 +110,8 @@ export function InvoiceOverlay({
         }
       : null,
     total_amount: parseFloat(payment.payment.total_amount),
-    months: payment.recordedMonths || payment.recordedQuarters || [],
+    months: payment.recordedMonths || [],
+    quarters: payment.recordedQuarters || [],
     method: payment.payment.method,
     notes: payment.payment.notes || undefined,
     invoice_no: String(payment.payment.id).padStart(5, "0"),
@@ -122,6 +123,13 @@ export function InvoiceOverlay({
     supplier_vat_reg_date: new Date("2017-07-08"),
     supplier_date_of_registration: new Date("2009-01-01"),
   };
+
+  console.log("[InvoiceOverlay] Payment response:", {
+    recordedMonths: payment.recordedMonths,
+    recordedQuarters: payment.recordedQuarters,
+    payment: payment.payment
+  });
+  console.log("[InvoiceOverlay] Invoice data prepared:", invoiceData);
 
   return (
     <div className="space-y-4 p-6">
@@ -148,7 +156,7 @@ export function InvoiceOverlay({
         <div ref={invoiceRef}>
           {(() => {
             try {
-              if (!invoiceData.months || invoiceData.months.length === 0) {
+              if (!invoiceData.months || !invoiceData.quarters) {
                 return (
                   <div className="p-4 text-center text-muted-foreground">
                     <p>No months data available for invoice</p>

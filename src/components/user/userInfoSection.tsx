@@ -62,7 +62,7 @@ export const UserInfoSection = ({
             placeholder="Enter name"
           />
         ) : (
-          <p className="text-base">{name}</p>
+          <p className="text-base">{editName}</p>
         )}
       </div>
 
@@ -77,7 +77,7 @@ export const UserInfoSection = ({
             placeholder="Enter email"
           />
         ) : (
-          <p className="text-base">{email}</p>
+          <p className="text-base">{editEmail}</p>
         )}
       </div>
 

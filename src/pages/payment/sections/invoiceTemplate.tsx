@@ -9,6 +9,7 @@ interface InvoiceData {
   } | null;
   total_amount: number;
   months: string[];
+  quarters: string[] | Array<{ quarter: number; year: number }>;
   method: string;
   notes?: string;
   invoice_no: string;
@@ -33,72 +34,114 @@ interface InvoiceTemplateProps {
 // };
 
 export function InvoiceTemplate({ data }: InvoiceTemplateProps) {
+  console.log("[InvoiceTemplate] Received data:", {
+    months: data.months,
+    quarters: data.quarters,
+    total_amount: data.total_amount
+  });
+
   const totalAmount = data.total_amount || 0;
   const totalInclVat = totalAmount;
   const subTotal = totalInclVat;
   const vatAmount = 0;
 
-  // Determine if this is quarterly or monthly payment
-  const isQuarterly = data.months && data.months.length === 3 && 
-    data.months.every((month, index, arr) => {
-      if (index === 0) return true;
-      const prevDate = new Date(arr[index - 1]);
-      const currDate = new Date(month);
-      const monthsDiff = (currDate.getFullYear() - prevDate.getFullYear()) * 12 + 
-                        (currDate.getMonth() - prevDate.getMonth());
-      return monthsDiff === 1;
-    });
-
-  // Prepare table items
+  // Determine payment type and prepare table items
   let tableItems: any[] = [];
   
-  if (data.months && data.months.length > 0) {
-    if (isQuarterly && data.months.length === 3) {
-      // Quarterly payment - show as single line item
-      const firstMonth = new Date(data.months[0]);
-      const quarter = Math.floor(firstMonth.getMonth() / 3) + 1;
-      const year = firstMonth.getFullYear();
-      
-      tableItems = [{
-        no: 1,
-        description: `Tuition Fee - Quarter ${quarter} ${year}`,
-        qty: 1,
-        unit: "Quarter",
-        unitPrice: subTotal.toFixed(2),
-        totalAmount: subTotal.toFixed(2),
-      }];
-    } else {
-      // Monthly payment - show each month
-      tableItems = (data.months || []).map((monthStr, index) => {
-        try {
-          const date = new Date(monthStr);
-          const monthName = date.toLocaleString("en-US", { month: "long" });
-          const year = date.getFullYear();
-          const monthCount = data.months.length || 1;
-          const unitPrice = subTotal / monthCount;
-          const itemSubtotal = unitPrice;
-
+  // Check for quarters first (quarterly payment)
+  if (data.quarters && data.quarters.length > 0) {
+    console.log("[InvoiceTemplate] Processing quarterly payment with quarters:", data.quarters);
+    
+    // Handle both string and object formats
+    const normalizedQuarters = data.quarters.map(q => {
+      if (typeof q === 'string') {
+        // Parse string format like "2024-Q1"
+        const match = q.match(/(\d{4})-Q(\d+)/i);
+        if (match) {
           return {
-            no: index + 1,
-            description: `Tuition Fee - ${monthName} ${year}`,
-            qty: 1,
-            unit: "Month",
-            unitPrice: unitPrice.toFixed(2),
-            totalAmount: itemSubtotal.toFixed(2),
-          };
-        } catch (err) {
-          return {
-            no: index + 1,
-            description: `Tuition Fee - Invalid Date`,
-            qty: 1,
-            unit: "Month",
-            unitPrice: "0.00",
-            totalAmount: "0.00",
+            year: parseInt(match[1]),
+            quarter: parseInt(match[2])
           };
         }
-      });
-    }
+        // Try JSON parse
+        try {
+          return JSON.parse(q);
+        } catch {
+          return { year: new Date().getFullYear(), quarter: 1 };
+        }
+      }
+      // Fix invalid year
+      if (q.year && q.year < 100) {
+        return { ...q, year: new Date().getFullYear() };
+      }
+      return q;
+    });
+    
+    console.log("[InvoiceTemplate] Normalized quarters:", normalizedQuarters);
+    
+    // Create table items for each quarter
+    tableItems = normalizedQuarters.map((quarterInfo, index) => {
+      const quarterCount = normalizedQuarters.length;
+      const unitPrice = subTotal / quarterCount;
+      
+      return {
+        no: index + 1,
+        description: `Tuition Fee - Quarter ${quarterInfo.quarter} ${quarterInfo.year}`,
+        qty: 1,
+        unit: "Quarter",
+        unitPrice: unitPrice.toFixed(2),
+        totalAmount: unitPrice.toFixed(2),
+      };
+    });
   }
+  // Then check for months (monthly payment)
+  else if (data.months && data.months.length > 0) {
+    console.log("[InvoiceTemplate] Processing monthly payment with months:", data.months);
+    
+    // Create table items for each month
+    tableItems = data.months.map((monthStr, index) => {
+      try {
+        const date = new Date(monthStr);
+        const monthName = date.toLocaleString("en-US", { month: "long" });
+        const year = date.getFullYear();
+        const monthCount = data.months.length;
+        const unitPrice = subTotal / monthCount;
+        const itemSubtotal = unitPrice;
+
+        return {
+          no: index + 1,
+          description: `Tuition Fee - ${monthName} ${year}`,
+          qty: 1,
+          unit: "Month",
+          unitPrice: unitPrice.toFixed(2),
+          totalAmount: itemSubtotal.toFixed(2),
+        };
+      } catch (err) {
+        return {
+          no: index + 1,
+          description: `Tuition Fee - Invalid Date`,
+          qty: 1,
+          unit: "Month",
+          unitPrice: "0.00",
+          totalAmount: "0.00",
+        };
+      }
+    });
+  }
+  else {
+    console.log("[InvoiceTemplate] No payment data found! Creating fallback item.");
+    // Create a fallback item if no data
+    tableItems = [{
+      no: 1,
+      description: `Tuition Fee - Payment`,
+      qty: 1,
+      unit: "Payment",
+      unitPrice: subTotal.toFixed(2),
+      totalAmount: subTotal.toFixed(2),
+    }];
+  }
+  
+  console.log("[InvoiceTemplate] Final table items:", tableItems);
 
   // Fill the rest of the 8 available lines with empty rows
   const emptyRows = Array(Math.max(0, 8 - tableItems.length))
