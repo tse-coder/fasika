@@ -214,11 +214,11 @@ export function PaymentForm({
     if (form.category === "registration" && !hasRegistrationPaid) {
       amount = registrationFee.toString();
     } else if (form.category === "quarterly") {
-      nextQuarters = getUpcomingQuarters(1, paidQuarters);
+      nextQuarters = getUpcomingQuarters(0, paidQuarters);
       amount = (recurringAmount * nextQuarters.length).toString();
       setSelectedQuarters(nextQuarters);
     } else if (form.category === "monthly") {
-      nextMonths = getUpcomingMonths(1, paidMonths);
+      nextMonths = getUpcomingMonths(0, paidMonths);
       amount = recurringAmount.toString();
     }
 
