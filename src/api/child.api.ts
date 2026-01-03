@@ -1,5 +1,5 @@
 import { Child, ChildQuery } from "@/types/child.types";
-import { apiGet, apiPost, apiPut } from "./http";
+import { apiGet, apiPost, apiPut, apiDelete } from "./http";
 import { PaginatedResponse } from "@/types/api.types";
 
 export const createChild = async (child: Omit<Child, "id"|"monthlyFee">) => {
@@ -38,10 +38,30 @@ export const fetchChildById = async (id: string) => {
   }
 };
 
+export const deleteChild = async (id: string) => {
+  console.log("[API] deleteChild - start", id);
+  try {
+    const res = await apiDelete<Child>(`/api/child/${id}`);
+    console.log("[API] deleteChild - success", res);
+    return res;
+  } catch (err) {
+    console.error("[API] deleteChild - error", err);
+    throw err;
+  }
+};
+
 export const updateChild = async (id: string, updates: Partial<Child>) => {
   console.log("[API] updateChild - start", { id, updates });
   try {
-    const res = await apiPut<Child>(`/api/child/${id}`, updates);
+    // Map frontend field names to backend field names
+    const backendUpdates = {
+      ...updates,
+      discount_note: updates.discountNote,
+    };
+    // Remove the frontend discountNote field
+    delete (backendUpdates as any).discountNote;
+    
+    const res = await apiPut<Child>(`/api/child/${id}`, backendUpdates);
     console.log("[API] updateChild - success", res);
     return res;
   } catch (err) {

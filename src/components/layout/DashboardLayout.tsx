@@ -35,6 +35,7 @@ interface DashboardLayoutProps {
 const navItems = [
   { path: "/", icon: LayoutDashboard, label: "Dashboard" },
   { path: "/children", icon: Users, label: "Children" },
+  { path: "/parents", icon: UsersIcon, label: "Parents" },
   { path: "/register", icon: UserPlus, label: "Register Child" },
   { path: "/payments", icon: CreditCard, label: "Payments" },
   { path: "/late-payments", icon: AlertTriangle, label: "Unpaid" },

@@ -1,5 +1,5 @@
 import { PaginatedResponse } from "@/types/api.types";
-import { apiGet, apiPost, apiPut } from "./http";
+import { apiGet, apiPost, apiPut, apiDelete } from "./http";
 import { Parent, ParentQuery } from "@/types/parent.types";
 
 // Backend registers a global prefix '/api' in main.ts
@@ -44,11 +44,31 @@ export const registerParent = async (
 export const updateParent = async (id: number, updates: Partial<Parent>) => {
   console.log("[API] updateParent - start", { id, updates });
   try {
-    const res = await apiPut<Parent>(`/api/parent/${id}`, updates);
+    // Map frontend field names to backend field names
+    const backendUpdates = {
+      ...updates,
+      phone_number: updates.phone,
+    };
+    // Remove the frontend phone field
+    delete (backendUpdates as any).phone;
+    
+    const res = await apiPut<Parent>(`/api/parent/${id}`, backendUpdates);
     console.log("[API] updateParent - success", res);
     return res;
   } catch (err) {
     console.error("[API] updateParent - error", err);
+    throw err;
+  }
+};
+
+export const deleteParent = async (id: number) => {
+  console.log("[API] deleteParent - start", id);
+  try {
+    const res = await apiDelete<Parent>(`/api/parent/${id}`);
+    console.log("[API] deleteParent - success", res);
+    return res;
+  } catch (err) {
+    console.error("[API] deleteParent - error", err);
     throw err;
   }
 };

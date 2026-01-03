@@ -17,7 +17,7 @@ export interface ParentQuery {
   is_active?: boolean;
   email?: string;
   phone_number?: string;
-  child_id:string;
+  child_id?:string;
 }
 
 export interface parentState {

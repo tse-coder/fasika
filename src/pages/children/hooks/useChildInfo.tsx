@@ -1,8 +1,10 @@
 import { useModalStore } from "@/stores/overlay.store";
 import { Child } from "@/types/child.types";
 import InfoOverlay from "../sections/infoOverlay";
+import { ChildEditOverlay } from "../components/ChildEditOverlay";
 import { LoaderIcon } from "@/components/ui/skeleton-card";
 import { fetchParentById, fetchParents } from "@/api/parent.api";
+import { useChildren } from "@/stores/children.store";
 // import { fetchParentById } from "@/mock/parent.mock";
 
 /**
@@ -10,6 +12,7 @@ import { fetchParentById, fetchParents } from "@/api/parent.api";
  */
 export const useChildInfo = () => {
   const openModal = useModalStore((state) => state.openModal);
+  const { fetchChildren } = useChildren();
 
   const showInfoOverlay = async (child: Child) => {
 
@@ -39,5 +42,21 @@ export const useChildInfo = () => {
     }
   };
 
-  return { showInfoOverlay };
+  const showEditOverlay = (child: Child) => {
+    openModal(
+      <ChildEditOverlay
+        child={child}
+        isOpen={true}
+        onClose={() => openModal(null)}
+        onUpdate={async (updatedChild) => {
+          // Refresh the children list after update
+          await fetchChildren();
+          // Close the modal after successful update
+          openModal(null);
+        }}
+      />
+    );
+  };
+
+  return { showInfoOverlay, showEditOverlay };
 };

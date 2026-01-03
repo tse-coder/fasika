@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Index from "./pages/Index/Index";
 import Children from "./pages/children/Children";
+import Parents from "./pages/parents/Parents";
 import Register from "./pages/register/Register";
 import Payments from "./pages/payment/Payments";
 import LatePayments from "./pages/late-payments/LatePayments";
@@ -39,6 +40,14 @@ const App = () => (
             element={
               <ProtectedRoute>
                 <Children />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/parents"
+            element={
+              <ProtectedRoute>
+                <Parents />
               </ProtectedRoute>
             }
           />
