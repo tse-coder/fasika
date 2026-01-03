@@ -9,6 +9,7 @@ import { useBranchStore } from "@/stores/branch.store";
 import { usePaymentInfoStore } from "@/stores/paymentInfo.store";
 import { createChild } from "@/api/child.api";
 import { Child } from "@/types/child.types";
+import { PaymentInfoData } from "@/types/payment-info.types";
 
 export interface ChildFormData {
   firstName: string;
@@ -30,7 +31,7 @@ export const useChildRegistration = () => {
   const { toast } = useToast();
   const { fetchChildren } = useChildren();
   const { currentBranch, branches } = useBranchStore();
-  const { data: paymentInfo, load: loadPaymentInfo } = usePaymentInfoStore();
+  const { data: paymentInfo, load: loadPaymentInfo, save: savePaymentInfo } = usePaymentInfoStore();
   const [isSubmittingChild, setIsSubmittingChild] = useState(false);
   const [childForm, setChildForm] = useState<ChildFormData>({
     firstName: "",
@@ -149,8 +150,33 @@ export const useChildRegistration = () => {
 
     try {
       setIsSubmittingChild(true);
-      await createChild(childPayload as Omit<Child, "id">);
+      const createdChild = await createChild(childPayload as Omit<Child, "id">);
       await fetchChildren();
+      
+      // If child has discount, add to payment info discounted array
+      if (childForm.hasDiscount && createdChild.id) {
+        const currentPaymentInfo = paymentInfo || (await loadPaymentInfo());
+        
+        if (currentPaymentInfo) {
+          const updatedPaymentInfo: PaymentInfoData = {
+            ...currentPaymentInfo,
+            discounted: [
+              ...currentPaymentInfo.discounted,
+              {
+                childId: parseInt(createdChild.id),
+                childName: `${childForm.firstName} ${childForm.lastName}`,
+                branch: childForm.branch,
+                program: childForm.program,
+                discountPercent: discountPercent,
+                note: childForm.discountNote,
+              },
+            ],
+          };
+          
+          await savePaymentInfo(updatedPaymentInfo);
+        }
+      }
+      
       toast({ title: "Success!", description: "Child has been registered." });
       setChildForm(initialChildForm);
       setChildErrors({});
